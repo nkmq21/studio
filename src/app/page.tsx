@@ -7,12 +7,11 @@ import MainLayout from '@/components/layout/main-layout';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { format, parse, isValid, startOfDay } from 'date-fns';
-import { CalendarCheck, Search, CalendarIcon } from 'lucide-react'; // Added CalendarIcon
+import { format, startOfDay } from 'date-fns';
+import { CalendarCheck, Search, CalendarIcon } from 'lucide-react';
 
 export default function SelectDatesPage() {
   const router = useRouter();
@@ -20,76 +19,25 @@ export default function SelectDatesPage() {
   
   const [startDate, setStartDate] = useState<Date | undefined>(new Date());
   const [endDate, setEndDate] = useState<Date | undefined>(() => {
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 3);
-    return tomorrow;
+    const defaultEndDate = new Date();
+    defaultEndDate.setDate(defaultEndDate.getDate() + 3);
+    return defaultEndDate;
   });
-
-  const [startDateInput, setStartDateInput] = useState<string>('');
-  const [endDateInput, setEndDateInput] = useState<string>('');
 
   const [isStartDatePickerOpen, setIsStartDatePickerOpen] = useState(false);
   const [isEndDatePickerOpen, setIsEndDatePickerOpen] = useState(false);
-
-  // Effect to initialize/update input fields when startDate or endDate changes
-  useEffect(() => {
-    if (startDate) {
-      setStartDateInput(format(startDate, 'yyyy-MM-dd'));
-    } else {
-      setStartDateInput('');
-    }
-  }, [startDate]);
-
-  useEffect(() => {
-    if (endDate) {
-      setEndDateInput(format(endDate, 'yyyy-MM-dd'));
-    } else {
-      setEndDateInput('');
-    }
-  }, [endDate]);
-
-  const handleStartDateInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newDateString = e.target.value;
-    setStartDateInput(newDateString);
-    const parsedDate = parse(newDateString, 'yyyy-MM-dd', new Date());
-    if (isValid(parsedDate)) {
-      setStartDate(parsedDate);
-      // If new start date is after end date, clear end date
-      if (endDate && parsedDate > endDate) {
-        setEndDate(undefined);
-      }
-    } else if (newDateString === '') {
-        setStartDate(undefined);
-    }
-  };
-  
-  const handleEndDateInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newDateString = e.target.value;
-    setEndDateInput(newDateString);
-    const parsedDate = parse(newDateString, 'yyyy-MM-dd', new Date());
-    if (isValid(parsedDate)) {
-      setEndDate(parsedDate);
-      // If new end date is before start date, clear start date (or handle as error later)
-      if (startDate && parsedDate < startDate) {
-        // Or perhaps better: setStartDate(parsedDate) and clear end date for a range selection UX
-        // For now, we'll let validation catch this.
-      }
-    } else if (newDateString === '') {
-        setEndDate(undefined);
-    }
-  };
 
   const handleFindBikes = () => {
     if (!startDate || !endDate) {
       toast({
         title: "Invalid Date Range",
-        description: "Please select or enter both a start and end date for your rental.",
+        description: "Please select both a start and end date for your rental.",
         variant: "destructive",
       });
       return;
     }
 
-    const today = startOfDay(new Date()); // Normalize today to start of day
+    const today = startOfDay(new Date());
 
     if (startOfDay(startDate) < today) {
       toast({
@@ -134,6 +82,7 @@ export default function SelectDatesPage() {
                 <Popover open={isStartDatePickerOpen} onOpenChange={setIsStartDatePickerOpen}>
                   <PopoverTrigger asChild>
                     <Button
+                      id="startDate"
                       variant={"outline"}
                       className="w-full justify-start text-left font-normal"
                     >
@@ -148,7 +97,7 @@ export default function SelectDatesPage() {
                       onSelect={(date) => {
                         setStartDate(date);
                         if (date && endDate && date > endDate) {
-                          setEndDate(undefined); // Clear end date if start is after it
+                          setEndDate(undefined); 
                         }
                         setIsStartDatePickerOpen(false);
                       }}
@@ -157,20 +106,13 @@ export default function SelectDatesPage() {
                     />
                   </PopoverContent>
                 </Popover>
-                 <Input 
-                  id="startDateManual" 
-                  type="date"
-                  value={startDateInput} 
-                  onChange={handleStartDateInputChange} 
-                  className="mt-2 text-center"
-                  min={format(new Date(), 'yyyy-MM-dd')}
-                />
               </div>
               <div>
                 <Label htmlFor="endDate" className="mb-1.5 block text-sm font-medium">End Date</Label>
                 <Popover open={isEndDatePickerOpen} onOpenChange={setIsEndDatePickerOpen}>
                   <PopoverTrigger asChild>
                      <Button
+                      id="endDate"
                       variant={"outline"}
                       className="w-full justify-start text-left font-normal"
                     >
@@ -191,35 +133,9 @@ export default function SelectDatesPage() {
                     />
                   </PopoverContent>
                 </Popover>
-                 <Input 
-                  id="endDateManual" 
-                  type="date"
-                  value={endDateInput} 
-                  onChange={handleEndDateInputChange} 
-                  className="mt-2 text-center"
-                  min={startDate ? format(startDate, 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd')}
-                />
               </div>
             </div>
             
-            {/* Combined Calendar for visual range selection (optional, or remove if popovers are primary) */}
-            {/* For simplicity, the popovers are now the primary way. This Calendar could be removed or adapted. */}
-            {/* 
-            <Calendar
-              mode="range"
-              selected={{from: startDate, to: endDate}}
-              onSelect={(range) => {
-                if (range) {
-                  setStartDate(range.from);
-                  setEndDate(range.to);
-                }
-              }}
-              numberOfMonths={1}
-              className="rounded-md border"
-              disabled={{ before: new Date() }}
-            />
-            */}
-
             {startDate && endDate && (
               <p className="text-sm text-muted-foreground pt-4">
                 Selected Period: {format(startDate, "PPP")} - {format(endDate, "PPP")}
