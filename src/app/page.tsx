@@ -10,22 +10,35 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { format, startOfDay } from 'date-fns';
+import { format, startOfDay } from 'date-fns'; 
 import { CalendarCheck, Search, CalendarIcon } from 'lucide-react';
 
 export default function SelectDatesPage() {
   const router = useRouter();
   const { toast } = useToast();
   
-  const [startDate, setStartDate] = useState<Date | undefined>(new Date());
+  const [startDate, setStartDate] = useState<Date | undefined>(startOfDay(new Date()));
   const [endDate, setEndDate] = useState<Date | undefined>(() => {
-    const defaultEndDate = new Date();
+    const defaultEndDate = startOfDay(new Date());
     defaultEndDate.setDate(defaultEndDate.getDate() + 3);
     return defaultEndDate;
   });
 
   const [isStartDatePickerOpen, setIsStartDatePickerOpen] = useState(false);
   const [isEndDatePickerOpen, setIsEndDatePickerOpen] = useState(false);
+
+  // Effect to ensure endDate is not before startDate if startDate changes
+  useEffect(() => {
+    if (startDate && endDate && startOfDay(endDate) < startOfDay(startDate)) {
+      setEndDate(undefined); 
+      toast({
+        title: "End Date Adjusted",
+        description: "End date cannot be before the start date. Please re-select.",
+        variant: "destructive",
+      });
+    }
+  }, [startDate, endDate, toast]);
+
 
   const handleFindBikes = () => {
     if (!startDate || !endDate) {
@@ -78,11 +91,11 @@ export default function SelectDatesPage() {
           <CardContent className="flex flex-col items-center space-y-6 px-4 md:px-6">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
               <div>
-                <Label htmlFor="startDate" className="mb-1.5 block text-sm font-medium">Start Date</Label>
+                <Label htmlFor="startDatePopover" className="mb-1.5 block text-sm font-medium">Start Date</Label>
                 <Popover open={isStartDatePickerOpen} onOpenChange={setIsStartDatePickerOpen}>
                   <PopoverTrigger asChild>
                     <Button
-                      id="startDate"
+                      id="startDatePopover"
                       variant={"outline"}
                       className="w-full justify-start text-left font-normal"
                     >
@@ -95,24 +108,25 @@ export default function SelectDatesPage() {
                       mode="single"
                       selected={startDate}
                       onSelect={(date) => {
-                        setStartDate(date);
-                        if (date && endDate && date > endDate) {
-                          setEndDate(undefined); 
+                        const newStartDate = date ? startOfDay(date) : undefined;
+                        setStartDate(newStartDate);
+                        if (newStartDate && endDate && newStartDate > startOfDay(endDate)) {
+                           setEndDate(undefined);
                         }
                         setIsStartDatePickerOpen(false);
                       }}
-                      disabled={{ before: new Date() }}
+                      disabled={{ before: startOfDay(new Date()) }}
                       initialFocus
                     />
                   </PopoverContent>
                 </Popover>
               </div>
               <div>
-                <Label htmlFor="endDate" className="mb-1.5 block text-sm font-medium">End Date</Label>
+                <Label htmlFor="endDatePopover" className="mb-1.5 block text-sm font-medium">End Date</Label>
                 <Popover open={isEndDatePickerOpen} onOpenChange={setIsEndDatePickerOpen}>
                   <PopoverTrigger asChild>
                      <Button
-                      id="endDate"
+                      id="endDatePopover"
                       variant={"outline"}
                       className="w-full justify-start text-left font-normal"
                     >
@@ -125,10 +139,11 @@ export default function SelectDatesPage() {
                       mode="single"
                       selected={endDate}
                       onSelect={(date) => {
-                        setEndDate(date);
+                        const newEndDate = date ? startOfDay(date) : undefined;
+                        setEndDate(newEndDate);
                         setIsEndDatePickerOpen(false);
                       }}
-                      disabled={{ before: startDate || new Date() }}
+                      disabled={{ before: startDate ? startOfDay(startDate) : startOfDay(new Date()) }}
                       initialFocus
                     />
                   </PopoverContent>
