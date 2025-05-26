@@ -10,7 +10,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { format, startOfDay } from 'date-fns'; 
+import { format, startOfDay, addDays } from 'date-fns'; 
 import { CalendarCheck, Search, CalendarIcon } from 'lucide-react';
 
 export default function SelectDatesPage() {
@@ -18,11 +18,7 @@ export default function SelectDatesPage() {
   const { toast } = useToast();
   
   const [startDate, setStartDate] = useState<Date | undefined>(startOfDay(new Date()));
-  const [endDate, setEndDate] = useState<Date | undefined>(() => {
-    const defaultEndDate = startOfDay(new Date());
-    defaultEndDate.setDate(defaultEndDate.getDate() + 3);
-    return defaultEndDate;
-  });
+  const [endDate, setEndDate] = useState<Date | undefined>(addDays(startOfDay(new Date()), 3));
 
   const [isStartDatePickerOpen, setIsStartDatePickerOpen] = useState(false);
   const [isEndDatePickerOpen, setIsEndDatePickerOpen] = useState(false);
@@ -34,7 +30,7 @@ export default function SelectDatesPage() {
       toast({
         title: "End Date Adjusted",
         description: "End date cannot be before the start date. Please re-select.",
-        variant: "destructive",
+        variant: "destructive", // Changed variant
       });
     }
   }, [startDate, endDate, toast]);
@@ -110,8 +106,13 @@ export default function SelectDatesPage() {
                       onSelect={(date) => {
                         const newStartDate = date ? startOfDay(date) : undefined;
                         setStartDate(newStartDate);
-                        if (newStartDate && endDate && newStartDate > startOfDay(endDate)) {
+                        if (newStartDate && endDate && startOfDay(newStartDate) > startOfDay(endDate)) {
                            setEndDate(undefined);
+                           toast({
+                                title: "End Date Cleared",
+                                description: "End date was before the new start date and has been cleared.",
+                                variant: "destructive", // Changed variant
+                            });
                         }
                         setIsStartDatePickerOpen(false);
                       }}
