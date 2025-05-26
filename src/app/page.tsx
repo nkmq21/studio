@@ -10,37 +10,44 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { format, startOfDay, addDays } from 'date-fns'; 
+import { format, startOfDay, addDays, isValid } from 'date-fns'; 
 import { CalendarCheck, Search, CalendarIcon } from 'lucide-react';
 
 export default function SelectDatesPage() {
   const router = useRouter();
   const { toast } = useToast();
   
-  const [startDate, setStartDate] = useState<Date | undefined>(startOfDay(new Date()));
-  const [endDate, setEndDate] = useState<Date | undefined>(addDays(startOfDay(new Date()), 3));
+  const [startDate, setStartDate] = useState<Date | undefined>(undefined);
+  const [endDate, setEndDate] = useState<Date | undefined>(undefined);
 
   const [isStartDatePickerOpen, setIsStartDatePickerOpen] = useState(false);
   const [isEndDatePickerOpen, setIsEndDatePickerOpen] = useState(false);
 
+  // Initialize dates on the client-side to avoid hydration mismatch
+  useEffect(() => {
+    const today = startOfDay(new Date());
+    setStartDate(today);
+    setEndDate(addDays(today, 3));
+  }, []);
+
   // Effect to ensure endDate is not before startDate if startDate changes
   useEffect(() => {
-    if (startDate && endDate && startOfDay(endDate) < startOfDay(startDate)) {
+    if (startDate && endDate && isValid(startDate) && isValid(endDate) && startOfDay(endDate) < startOfDay(startDate)) {
       setEndDate(undefined); 
       toast({
         title: "End Date Adjusted",
         description: "End date cannot be before the start date. Please re-select.",
-        variant: "destructive", // Changed variant
+        variant: "destructive",
       });
     }
   }, [startDate, endDate, toast]);
 
 
   const handleFindBikes = () => {
-    if (!startDate || !endDate) {
+    if (!startDate || !endDate || !isValid(startDate) || !isValid(endDate)) {
       toast({
         title: "Invalid Date Range",
-        description: "Please select both a start and end date for your rental.",
+        description: "Please select both a valid start and end date for your rental.",
         variant: "destructive",
       });
       return;
@@ -94,9 +101,10 @@ export default function SelectDatesPage() {
                       id="startDatePopover"
                       variant={"outline"}
                       className="w-full justify-start text-left font-normal"
+                      disabled={!startDate} // Disable button until date is initialized
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
-                      {startDate ? format(startDate, "PPP") : <span>Pick a date</span>}
+                      {startDate && isValid(startDate) ? format(startDate, "PPP") : <span>Pick a date</span>}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0">
@@ -106,12 +114,12 @@ export default function SelectDatesPage() {
                       onSelect={(date) => {
                         const newStartDate = date ? startOfDay(date) : undefined;
                         setStartDate(newStartDate);
-                        if (newStartDate && endDate && startOfDay(newStartDate) > startOfDay(endDate)) {
+                        if (newStartDate && endDate && isValid(newStartDate) && isValid(endDate) && startOfDay(newStartDate) > startOfDay(endDate)) {
                            setEndDate(undefined);
                            toast({
                                 title: "End Date Cleared",
                                 description: "End date was before the new start date and has been cleared.",
-                                variant: "destructive", // Changed variant
+                                variant: "destructive",
                             });
                         }
                         setIsStartDatePickerOpen(false);
@@ -130,9 +138,10 @@ export default function SelectDatesPage() {
                       id="endDatePopover"
                       variant={"outline"}
                       className="w-full justify-start text-left font-normal"
+                      disabled={!endDate} // Disable button until date is initialized
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
-                      {endDate ? format(endDate, "PPP") : <span>Pick a date</span>}
+                      {endDate && isValid(endDate) ? format(endDate, "PPP") : <span>Pick a date</span>}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0">
@@ -144,7 +153,7 @@ export default function SelectDatesPage() {
                         setEndDate(newEndDate);
                         setIsEndDatePickerOpen(false);
                       }}
-                      disabled={{ before: startDate ? startOfDay(startDate) : startOfDay(new Date()) }}
+                      disabled={ (startDate && isValid(startDate)) ? { before: startOfDay(startDate) } : { before: startOfDay(new Date()) }}
                       initialFocus
                     />
                   </PopoverContent>
@@ -152,7 +161,7 @@ export default function SelectDatesPage() {
               </div>
             </div>
             
-            {startDate && endDate && (
+            {startDate && endDate && isValid(startDate) && isValid(endDate) && (
               <p className="text-sm text-muted-foreground pt-4">
                 Selected Period: {format(startDate, "PPP")} - {format(endDate, "PPP")}
               </p>
@@ -163,7 +172,7 @@ export default function SelectDatesPage() {
               size="lg"
               className="w-full"
               onClick={handleFindBikes}
-              disabled={!startDate || !endDate}
+              disabled={!startDate || !endDate || !isValid(startDate) || !isValid(endDate)}
             >
               <Search className="w-5 h-5 mr-2" />
               Find Bikes
