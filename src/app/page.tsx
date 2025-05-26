@@ -101,7 +101,7 @@ export default function SelectDatesPage() {
                       id="startDatePopover"
                       variant={"outline"}
                       className="w-full justify-start text-left font-normal"
-                      disabled={!startDate} // Disable button until date is initialized
+                      disabled={!startDate} // Disable button until date is initialized client-side
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
                       {startDate && isValid(startDate) ? format(startDate, "PPP") : <span>Pick a date</span>}
@@ -138,7 +138,7 @@ export default function SelectDatesPage() {
                       id="endDatePopover"
                       variant={"outline"}
                       className="w-full justify-start text-left font-normal"
-                      disabled={!endDate} // Disable button until date is initialized
+                      disabled={!startDate} // Only disable if startDate is not picked
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
                       {endDate && isValid(endDate) ? format(endDate, "PPP") : <span>Pick a date</span>}
