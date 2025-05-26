@@ -1,15 +1,17 @@
 
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import MainLayout from '@/components/layout/main-layout';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import type { DateRange } from 'react-day-picker';
-import { addDays, format } from 'date-fns';
+import { addDays, format, parse, isValid } from 'date-fns';
 import { CalendarCheck, Search } from 'lucide-react';
 
 export default function SelectDatesPage() {
@@ -19,17 +21,77 @@ export default function SelectDatesPage() {
     from: new Date(),
     to: addDays(new Date(), 3),
   });
+  const [startDateInput, setStartDateInput] = useState('');
+  const [endDateInput, setEndDateInput] = useState('');
+
+  // Effect to update input fields when dateRange (from calendar or initial load) changes
+  useEffect(() => {
+    if (dateRange?.from) {
+      setStartDateInput(format(dateRange.from, 'yyyy-MM-dd'));
+    } else {
+      setStartDateInput('');
+    }
+    if (dateRange?.to) {
+      setEndDateInput(format(dateRange.to, 'yyyy-MM-dd'));
+    } else {
+      setEndDateInput('');
+    }
+  }, [dateRange]);
+
+  const handleStartDateInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newDateString = e.target.value;
+    setStartDateInput(newDateString);
+    const parsedDate = parse(newDateString, 'yyyy-MM-dd', new Date());
+    if (isValid(parsedDate)) {
+      // Keep existing 'to' date if 'from' is changed, or clear 'to' if 'from' becomes after 'to'
+      setDateRange(prev => {
+        const newFrom = parsedDate;
+        const currentTo = prev?.to;
+        if (currentTo && newFrom > currentTo) {
+          return { from: newFrom, to: undefined };
+        }
+        return { ...prev, from: newFrom };
+      });
+    } else if (newDateString === '') {
+        setDateRange(prev => ({ ...prev, from: undefined }));
+    }
+  };
+  
+  const handleEndDateInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newDateString = e.target.value;
+    setEndDateInput(newDateString);
+    const parsedDate = parse(newDateString, 'yyyy-MM-dd', new Date());
+    if (isValid(parsedDate)) {
+      // Keep existing 'from' date if 'to' is changed
+      setDateRange(prev => ({ ...prev, to: parsedDate }));
+    } else if (newDateString === '') {
+        setDateRange(prev => ({ ...prev, to: undefined }));
+    }
+  };
+
 
   const handleFindBikes = () => {
     if (!dateRange?.from || !dateRange?.to) {
       toast({
         title: "Invalid Date Range",
-        description: "Please select both a start and end date for your rental.",
+        description: "Please select or enter both a start and end date for your rental.",
         variant: "destructive",
       });
       return;
     }
 
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Normalize today to start of day
+
+    if (dateRange.from < today) {
+      toast({
+        title: "Invalid Start Date",
+        description: "The start date cannot be in the past.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     if (dateRange.from > dateRange.to) {
       toast({
         title: "Invalid Date Order",
@@ -58,11 +120,33 @@ export default function SelectDatesPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col items-center space-y-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full px-4 sm:px-0">
+              <div>
+                <Label htmlFor="startDate" className="mb-1.5 block text-sm font-medium">Start Date</Label>
+                <Input 
+                  id="startDate" 
+                  value={startDateInput} 
+                  onChange={handleStartDateInputChange} 
+                  placeholder="YYYY-MM-DD" 
+                  className="text-center"
+                />
+              </div>
+              <div>
+                <Label htmlFor="endDate" className="mb-1.5 block text-sm font-medium">End Date</Label>
+                <Input 
+                  id="endDate" 
+                  value={endDateInput} 
+                  onChange={handleEndDateInputChange} 
+                  placeholder="YYYY-MM-DD" 
+                  className="text-center"
+                />
+              </div>
+            </div>
             <Calendar
               mode="range"
               selected={dateRange}
               onSelect={setDateRange}
-              numberOfMonths={1} // Show one month, can be 2 for wider screens if desired
+              numberOfMonths={1}
               className="rounded-md border"
               disabled={{ before: new Date() }}
             />
