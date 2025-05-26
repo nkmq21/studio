@@ -1,7 +1,8 @@
+
 "use client";
 
 import Link from 'next/link';
-import { Bike, LogIn, LogOut, UserCircle, UserPlus, LayoutDashboard, MapPin, MessageSquare, History, ShoppingCart } from 'lucide-react';
+import { Bike, LogIn, LogOut, UserCircle, UserPlus, LayoutDashboard, MessageSquare, History, ShoppingCart, MapPin } from 'lucide-react'; // MapPin kept for potential future use or other contexts
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/auth-context';
 import {
@@ -30,15 +31,12 @@ export default function Header() {
           <Bike className="h-8 w-8" />
           <span className="font-bold text-xl">MotoRent</span>
         </Link>
-        <nav className="flex items-center space-x-4 lg:space-x-6">
-          <Link href="/" className="text-sm font-medium text-foreground/70 hover:text-primary transition-colors">
+        <nav className="flex items-center space-x-2 md:space-x-4 lg:space-x-6">
+          <Link href="/bikes" className="text-sm font-medium text-foreground/70 hover:text-primary transition-colors px-1 py-1 md:px-2">
             Bikes
           </Link>
-          <Link href="/location-finder" className="text-sm font-medium text-foreground/70 hover:text-primary transition-colors">
-            <span className="hidden sm:inline">Location Finder</span>
-            <MapPin className="sm:hidden h-5 w-5"/>
-          </Link>
-          <Link href="/support" className="text-sm font-medium text-foreground/70 hover:text-primary transition-colors">
+          {/* Removed Location Finder link */}
+          <Link href="/support" className="text-sm font-medium text-foreground/70 hover:text-primary transition-colors px-1 py-1 md:px-2">
             <span className="hidden sm:inline">Support</span>
              <MessageSquare className="sm:hidden h-5 w-5"/>
           </Link>
@@ -99,15 +97,15 @@ export default function Header() {
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
-            <div className="space-x-2">
+            <div className="space-x-1 md:space-x-2">
               <Button asChild variant="ghost" size="sm">
                 <Link href="/auth/login">
-                  <LogIn className="mr-2 h-4 w-4" /> Login
+                  <LogIn className="mr-1 md:mr-2 h-4 w-4" /> Login
                 </Link>
               </Button>
               <Button asChild variant="default" size="sm">
                 <Link href="/auth/signup">
-                  <UserPlus className="mr-2 h-4 w-4" /> Sign Up
+                  <UserPlus className="mr-1 md:mr-2 h-4 w-4" /> Sign Up
                 </Link>
               </Button>
             </div>
