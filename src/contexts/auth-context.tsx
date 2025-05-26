@@ -1,3 +1,4 @@
+
 "use client";
 
 import type { User, UserRole } from '@/lib/types';
@@ -10,6 +11,7 @@ interface AuthContextType {
   login: (email: string, pass: string) => Promise<boolean>; // Pass is unused for mock
   signup: (name: string, email: string, pass: string, role: UserRole) => Promise<boolean>; // Pass is unused
   logout: () => void;
+  loginWithGoogle: () => Promise<boolean>;
   loading: boolean;
   isAuthenticated: boolean;
 }
@@ -61,6 +63,25 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return true;
   };
 
+  const loginWithGoogle = async () => {
+    setLoading(true);
+    // Simulate API call & Google auth
+    await new Promise(resolve => setTimeout(resolve, 500));
+    const googleUser: User = { 
+      id: 'user-google', 
+      name: 'Google User', 
+      email: 'google.user@motorent.com', 
+      role: 'renter', 
+      avatarUrl: 'https://placehold.co/100x100.png' 
+    };
+    // You might want to check if this user exists in MOCK_USERS or add them,
+    // but for this mock, we'll just set this user directly.
+    setUser(googleUser);
+    localStorage.setItem('motoRentUser', JSON.stringify(googleUser));
+    setLoading(false);
+    return true;
+  };
+
   const logout = () => {
     setUser(null);
     localStorage.removeItem('motoRentUser');
@@ -68,7 +89,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, signup, logout, loading, isAuthenticated: !!user }}>
+    <AuthContext.Provider value={{ user, login, signup, logout, loginWithGoogle, loading, isAuthenticated: !!user }}>
       {children}
     </AuthContext.Provider>
   );

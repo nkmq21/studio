@@ -1,3 +1,4 @@
+
 "use client";
 
 import { AuthForm } from "@/components/auth/auth-form";
@@ -8,13 +9,16 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
 export default function LoginPage() {
-  const { login, isAuthenticated, loading } = useAuth();
+  const { login, loginWithGoogle, isAuthenticated, loading } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
 
   useEffect(() => {
     if (isAuthenticated && !loading) {
-      router.push("/");
+      // Check for redirect query parameter
+      const searchParams = new URLSearchParams(window.location.search);
+      const redirectPath = searchParams.get('redirect') || '/';
+      router.push(redirectPath);
     }
   }, [isAuthenticated, loading, router]);
 
@@ -23,15 +27,27 @@ export default function LoginPage() {
     const success = await login(values.email, values.password);
     if (success) {
       toast({ title: "Login Successful", description: "Welcome back!" });
-      router.push("/");
+      const searchParams = new URLSearchParams(window.location.search);
+      const redirectPath = searchParams.get('redirect') || '/';
+      router.push(redirectPath);
       return true;
     } else {
-      toast({
-        title: "Login Failed",
-        description: "Invalid email or password. Please try again.",
-        variant: "destructive",
-      });
-      return "Invalid email or password.";
+      // AuthForm will display this error
+      return "Invalid email or password. Please try again.";
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    const success = await loginWithGoogle();
+    if (success) {
+      toast({ title: "Login Successful", description: "Welcome via Google!" });
+      const searchParams = new URLSearchParams(window.location.search);
+      const redirectPath = searchParams.get('redirect') || '/';
+      router.push(redirectPath);
+      return true;
+    } else {
+      // AuthForm will display this error
+      return "Google login failed. Please try again.";
     }
   };
   
@@ -48,7 +64,11 @@ export default function LoginPage() {
 
   return (
     <MainLayout>
-      <AuthForm mode="login" onSubmit={handleLogin} />
+      <AuthForm 
+        mode="login" 
+        onSubmit={handleLogin} 
+        onGoogleLogin={handleGoogleLogin} 
+      />
     </MainLayout>
   );
 }
