@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tag, Star, DollarSign, MapPinIcon } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
+// Removed Badge import as it's no longer used here
 
 interface BikeCardProps {
   bike: Bike;
@@ -46,9 +46,7 @@ export default function BikeCard({ bike }: BikeCardProps) {
           </div>
         )}
         <p className="text-sm text-foreground/80 line-clamp-2 mb-3">{bike.description}</p>
-        <Badge variant={bike.isAvailable ? "secondary" : "destructive"} className="text-xs">
-          {bike.isAvailable ? "Available" : "Unavailable"}
-        </Badge>
+        {/* Removed the Badge component that displayed bike.isAvailable */}
       </CardContent>
       <CardFooter className="p-4 flex justify-between items-center border-t">
         <div className="flex items-center font-semibold text-lg">
