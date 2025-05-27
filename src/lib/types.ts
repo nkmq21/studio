@@ -21,6 +21,7 @@ export interface Bike {
   rating?: number; // Optional: 1-5 stars
   isAvailable?: boolean; // Simplified availability
   amount: number; // Added amount field
+  cylinderVolume?: number; // Optional: in cc
 }
 
 export interface Rental {

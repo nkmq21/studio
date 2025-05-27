@@ -21,6 +21,7 @@ export const MOCK_BIKES: Bike[] = [
     rating: 4.5,
     isAvailable: true,
     amount: 10,
+    cylinderVolume: 249,
   },
   {
     id: 'bike2',
@@ -34,6 +35,7 @@ export const MOCK_BIKES: Bike[] = [
     rating: 4.8,
     isAvailable: true,
     amount: 5,
+    cylinderVolume: 471,
   },
   {
     id: 'bike3',
@@ -47,6 +49,7 @@ export const MOCK_BIKES: Bike[] = [
     rating: 4.9,
     isAvailable: false,
     amount: 3,
+    cylinderVolume: 999,
   },
   {
     id: 'bike4',
@@ -60,6 +63,7 @@ export const MOCK_BIKES: Bike[] = [
     rating: 4.7,
     isAvailable: true,
     amount: 7,
+    cylinderVolume: 1200,
   },
   {
     id: 'bike5',
@@ -73,6 +77,35 @@ export const MOCK_BIKES: Bike[] = [
     rating: 4.3,
     isAvailable: true,
     amount: 12,
+    // cylinderVolume is intentionally undefined for electric
+  },
+  {
+    id: 'bike6',
+    name: 'CityHopper 125',
+    type: 'Scooter',
+    imageUrl: 'https://placehold.co/600x400.png" data-ai-hint="small scooter',
+    pricePerDay: 35,
+    description: 'A nimble and affordable 125cc scooter for zipping through city traffic.',
+    features: ['Automatic', 'Lightweight', 'Fuel Efficient'],
+    location: 'Downtown Central',
+    rating: 4.1,
+    isAvailable: true,
+    amount: 8,
+    cylinderVolume: 125,
+  },
+  {
+    id: 'bike7',
+    name: 'Tourer Max 750',
+    type: 'Adventure',
+    imageUrl: 'https://placehold.co/600x400.png" data-ai-hint="touring motorcycle',
+    pricePerDay: 85,
+    description: 'Comfortable and capable tourer for long distance rides with ample storage.',
+    features: ['Manual 6-Speed', 'Heated Grips', 'Large Panniers', 'Comfort Seat'],
+    location: 'Mountain Pass Rentals',
+    rating: 4.6,
+    isAvailable: true,
+    amount: 4,
+    cylinderVolume: 749,
   },
 ];
 
