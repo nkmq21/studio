@@ -1,3 +1,4 @@
+
 import type { Bike, User, Rental } from './types';
 import { addDays } from 'date-fns';
 
@@ -19,6 +20,7 @@ export const MOCK_BIKES: Bike[] = [
     location: 'Downtown Central',
     rating: 4.5,
     isAvailable: true,
+    amount: 10,
   },
   {
     id: 'bike2',
@@ -31,6 +33,7 @@ export const MOCK_BIKES: Bike[] = [
     location: 'Mountain Pass Rentals',
     rating: 4.8,
     isAvailable: true,
+    amount: 5,
   },
   {
     id: 'bike3',
@@ -43,6 +46,7 @@ export const MOCK_BIKES: Bike[] = [
     location: 'Speedway Rentals Co.',
     rating: 4.9,
     isAvailable: false,
+    amount: 3,
   },
   {
     id: 'bike4',
@@ -55,6 +59,7 @@ export const MOCK_BIKES: Bike[] = [
     location: 'Route 66 Motorbikes',
     rating: 4.7,
     isAvailable: true,
+    amount: 7,
   },
   {
     id: 'bike5',
@@ -67,6 +72,7 @@ export const MOCK_BIKES: Bike[] = [
     location: 'GreenWheels Hub',
     rating: 4.3,
     isAvailable: true,
+    amount: 12,
   },
 ];
 

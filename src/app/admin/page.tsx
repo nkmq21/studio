@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { ShieldAlert, Bike as BikeIconLucide, ListChecks, CalendarClock, PlusCircle, Pencil, Trash2, Users, Clock } from 'lucide-react';
+import { ShieldAlert, Bike as BikeIconLucide, ListChecks, CalendarClock, PlusCircle, Pencil, Trash2, Users, Clock, Package } from 'lucide-react';
 import { MOCK_BIKES, MOCK_RENTALS, MOCK_USERS } from '@/lib/mock-data';
 import type { Bike, Rental, User as AppUser } from '@/lib/types';
 import BikeFormDialog, { type BikeFormData } from '@/components/admin/bike-form-dialog';
@@ -121,6 +121,7 @@ export default function AdminPage() {
       type: data.type,
       imageUrl: data.imageUrl,
       pricePerDay: data.pricePerDay,
+      amount: data.amount,
       description: data.description,
       features: data.features.split(',').map(f => f.trim()).filter(f => f),
       location: data.location,
@@ -182,6 +183,7 @@ export default function AdminPage() {
                     <TableHead className="w-[200px]">Name</TableHead>
                     <TableHead>Type</TableHead>
                     <TableHead>Price/Day</TableHead>
+                    <TableHead>Amount</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
@@ -189,7 +191,7 @@ export default function AdminPage() {
                 <TableBody>
                   {bikes.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={5} className="text-center h-24">
+                      <TableCell colSpan={6} className="text-center h-24">
                         No bikes in the catalog yet.
                       </TableCell>
                     </TableRow>
@@ -199,6 +201,7 @@ export default function AdminPage() {
                         <TableCell className="font-medium">{bike.name}</TableCell>
                         <TableCell>{bike.type}</TableCell>
                         <TableCell>${bike.pricePerDay.toFixed(2)}</TableCell>
+                        <TableCell>{bike.amount}</TableCell>
                         <TableCell>
                           <Badge variant={bike.isAvailable ? "secondary" : "destructive"}>
                             {bike.isAvailable ? "Available" : "Unavailable"}

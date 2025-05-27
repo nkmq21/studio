@@ -43,6 +43,7 @@ const bikeFormSchema = z.object({
   type: z.enum(bikeTypes, { required_error: "Bike type is required." }),
   imageUrl: z.string().url({ message: "Please enter a valid image URL." }).or(z.string().startsWith("https://placehold.co")),
   pricePerDay: z.coerce.number().positive({ message: "Price must be a positive number." }),
+  amount: z.coerce.number().int().min(0, { message: "Amount must be a non-negative integer." }),
   description: z.string().min(10, { message: "Description must be at least 10 characters." }),
   features: z.string().min(1, { message: "Please list at least one feature." }), // Comma-separated string
   location: z.string().min(3, { message: "Location must be at least 3 characters." }),
@@ -68,6 +69,7 @@ export default function BikeFormDialog({ open, onOpenChange, onSubmit, bikeToEdi
       type: undefined,
       imageUrl: "https://placehold.co/600x400.png",
       pricePerDay: 0,
+      amount: 0,
       description: "",
       features: "",
       location: "",
@@ -82,6 +84,7 @@ export default function BikeFormDialog({ open, onOpenChange, onSubmit, bikeToEdi
         ...bikeToEdit,
         features: bikeToEdit.features.join(', '),
         rating: bikeToEdit.rating ?? null,
+        amount: bikeToEdit.amount ?? 0,
       });
     } else {
       form.reset({
@@ -89,6 +92,7 @@ export default function BikeFormDialog({ open, onOpenChange, onSubmit, bikeToEdi
         type: undefined,
         imageUrl: "https://placehold.co/600x400.png",
         pricePerDay: 0,
+        amount: 0,
         description: "",
         features: "",
         location: "",
@@ -126,7 +130,7 @@ export default function BikeFormDialog({ open, onOpenChange, onSubmit, bikeToEdi
                 </FormItem>
               )}
             />
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <FormField
                 control={form.control}
                 name="type"
@@ -157,6 +161,19 @@ export default function BikeFormDialog({ open, onOpenChange, onSubmit, bikeToEdi
                     <FormLabel>Price Per Day ($)</FormLabel>
                     <FormControl>
                       <Input type="number" placeholder="e.g., 50" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="amount"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Amount</FormLabel>
+                    <FormControl>
+                      <Input type="number" placeholder="e.g., 10" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

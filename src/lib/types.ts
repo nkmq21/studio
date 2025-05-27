@@ -1,3 +1,4 @@
+
 export type UserRole = 'renter' | 'admin' | 'staff';
 
 export interface User {
@@ -19,6 +20,7 @@ export interface Bike {
   location: string; 
   rating?: number; // Optional: 1-5 stars
   isAvailable?: boolean; // Simplified availability
+  amount: number; // Added amount field
 }
 
 export interface Rental {
