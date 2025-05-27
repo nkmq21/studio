@@ -1,7 +1,6 @@
 
 "use client";
 
-import MainLayout from '@/components/layout/main-layout';
 import BikeCard from '@/components/bikes/bike-card';
 import { MOCK_BIKES } from '@/lib/mock-data';
 import type { Bike } from '@/lib/types';
@@ -127,11 +126,9 @@ export default function BikesPage() {
   
   if ((!selectedDates || !selectedLocation) && !isLoading) { 
     return (
-      <MainLayout>
         <div className="flex justify-center items-center h-full">
           <p>Redirecting to select dates & location...</p>
         </div>
-      </MainLayout>
     );
   }
   
@@ -177,7 +174,6 @@ export default function BikesPage() {
 
 
   return (
-    <MainLayout>
       <SidebarProvider defaultOpen={true}> 
         <Sidebar side="left" variant="sidebar" collapsible="icon" className="border-r bg-card">
           <SidebarHeader className="p-4">
@@ -263,6 +259,5 @@ export default function BikesPage() {
           </div>
         </SidebarInset>
       </SidebarProvider>
-    </MainLayout>
   );
 }
