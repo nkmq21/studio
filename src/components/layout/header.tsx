@@ -2,7 +2,7 @@
 "use client";
 
 import Link from 'next/link';
-import { Bike, LogIn, LogOut, UserCircle, UserPlus, LayoutDashboard, MessageSquare, History, ShoppingCart } from 'lucide-react'; // Removed MapPin as it's not used
+import { Bike, LogIn, LogOut, UserCircle, UserPlus, LayoutDashboard, MessageSquare, History, ShoppingCart, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/auth-context';
 import {
@@ -15,7 +15,11 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
-export default function Header() {
+interface HeaderProps {
+  toggleChatWidget: () => void;
+}
+
+export default function Header({ toggleChatWidget }: HeaderProps) {
   const { user, logout, isAuthenticated } = useAuth();
 
   const getInitials = (name: string) => {
@@ -35,11 +39,13 @@ export default function Header() {
           <Link href="/bikes" className="text-sm font-medium text-foreground/70 hover:text-primary transition-colors px-1 py-1 md:px-2">
             Bikes
           </Link>
-          <Button variant="ghost" asChild className="px-1 py-1 md:px-2 text-sm font-medium text-foreground/70 hover:text-primary hover:bg-transparent">
-            <Link href="/support">
-              <MessageSquare className="h-5 w-5 md:mr-1.5"/>
-              <span className="hidden md:inline">Support</span>
-            </Link>
+          <Button 
+            variant="ghost" 
+            onClick={toggleChatWidget} 
+            className="px-1 py-1 md:px-2 text-sm font-medium text-foreground/70 hover:text-primary hover:bg-transparent"
+          >
+            <MessageSquare className="h-5 w-5 md:mr-1.5"/>
+            <span className="hidden md:inline">Support</span>
           </Button>
 
           {isAuthenticated ? (
