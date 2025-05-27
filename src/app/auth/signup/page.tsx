@@ -1,7 +1,8 @@
+
 "use client";
 
 import { AuthForm } from "@/components/auth/auth-form";
-import MainLayout from "@/components/layout/main-layout";
+// import MainLayout from "@/components/layout/main-layout"; // Removed
 import { useAuth } from "@/contexts/auth-context";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
@@ -12,7 +13,7 @@ export default function SignupPage() {
   const { signup, isAuthenticated, loading } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
-  
+
   useEffect(() => {
     if (isAuthenticated && !loading) {
       router.push("/");
@@ -35,20 +36,16 @@ export default function SignupPage() {
       return "An account with this email may already exist.";
     }
   };
-  
+
   if (loading || (!loading && isAuthenticated)) {
      return (
-      <MainLayout>
         <div className="flex justify-center items-center h-full">
           <p>Loading...</p>
         </div>
-      </MainLayout>
      );
   }
 
   return (
-    <MainLayout>
       <AuthForm mode="signup" onSubmit={handleSignup} />
-    </MainLayout>
   );
 }

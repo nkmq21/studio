@@ -1,7 +1,8 @@
+
 "use client";
 
 import { useEffect } from 'react';
-import MainLayout from '@/components/layout/main-layout';
+// import MainLayout from '@/components/layout/main-layout'; // Removed
 import { useAuth } from '@/contexts/auth-context';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -23,16 +24,13 @@ export default function StaffPage() {
 
   if (loading || !isAuthenticated || (user?.role !== 'staff' && user?.role !== 'admin')) {
     return (
-      <MainLayout>
         <div className="flex justify-center items-center h-full">
           <p>Loading or unauthorized...</p>
         </div>
-      </MainLayout>
     );
   }
 
   return (
-    <MainLayout>
       <div className="space-y-8">
         <div className="mb-8 p-6 bg-card rounded-lg shadow-md">
           <h1 className="text-4xl font-bold text-primary mb-2 flex items-center">
@@ -73,7 +71,7 @@ export default function StaffPage() {
             </CardContent>
           </Card>
         </div>
-        
+
         <Card className="mt-8">
             <CardHeader>
                 <CardTitle>Staff Responsibilities Overview</CardTitle>
@@ -89,6 +87,5 @@ export default function StaffPage() {
         </Card>
 
       </div>
-    </MainLayout>
   );
 }

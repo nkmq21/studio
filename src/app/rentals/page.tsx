@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect, useState } from 'react';
@@ -5,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import type { Rental } from '@/lib/types';
 import { MOCK_RENTALS, MOCK_BIKES } from '@/lib/mock-data'; // Assuming MOCK_RENTALS uses bikeId
-import MainLayout from '@/components/layout/main-layout';
+// import MainLayout from '@/components/layout/main-layout'; // Removed
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -58,7 +59,7 @@ export default function RentalHistoryPage() {
              {...(rental.bikeImageUrl.includes('data-ai-hint') ? { 'data-ai-hint': rental.bikeImageUrl.split('data-ai-hint="')[1].split('"')[0] } : {})}
           />
         </div>
-        <Badge 
+        <Badge
           className="absolute top-2 right-2"
           variant={
             rental.status === 'Completed' ? 'default' :
@@ -96,31 +97,27 @@ export default function RentalHistoryPage() {
 
   if (authLoading || isLoading) {
     return (
-      <MainLayout>
         <div className="flex justify-center items-center h-full">
           <p>Loading your rental history...</p>
         </div>
-      </MainLayout>
     );
   }
-  
+
   if (!isAuthenticated) {
     // This case should ideally be handled by the useEffect redirect,
     // but as a fallback:
     return (
-      <MainLayout>
         <div className="text-center py-10">
            <Info className="mx-auto h-12 w-12 text-primary mb-4" />
           <h1 className="text-2xl font-semibold">Please Log In</h1>
           <p className="text-muted-foreground">Log in to view your rental history.</p>
           <Button onClick={() => router.push('/auth/login')} className="mt-4">Login</Button>
         </div>
-      </MainLayout>
     );
   }
 
   return (
-    <MainLayout>
+    <>
       <div className="mb-8">
         <h1 className="text-4xl font-bold text-primary mb-2 flex items-center"><History className="w-10 h-10 mr-3" />Rental History</h1>
         <p className="text-muted-foreground text-lg">View your past and upcoming motorbike rentals.</p>
@@ -159,7 +156,7 @@ export default function RentalHistoryPage() {
           )}
         </TabsContent>
       </Tabs>
-    </MainLayout>
+    </>
   );
 }
 

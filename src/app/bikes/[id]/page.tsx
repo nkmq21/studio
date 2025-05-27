@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect, useState } from 'react';
@@ -5,7 +6,7 @@ import { useParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { MOCK_BIKES, RENTAL_OPTIONS } from '@/lib/mock-data';
 import type { Bike, OrderDetails } from '@/lib/types';
-import MainLayout from '@/components/layout/main-layout';
+// import MainLayout from '@/components/layout/main-layout'; // Removed
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -93,22 +94,19 @@ export default function BikeDetailsPage() {
     localStorage.setItem('currentOrder', JSON.stringify(orderDetails));
     router.push('/checkout');
   };
-  
+
   if (!bike) {
     return (
-      <MainLayout>
         <div className="text-center py-10">
           <AlertCircle className="mx-auto h-12 w-12 text-destructive mb-4" />
           <h1 className="text-2xl font-semibold">Motorbike Not Found</h1>
           <p className="text-muted-foreground">The motorbike you are looking for does not exist or is currently unavailable.</p>
           <Button onClick={() => router.push('/')} className="mt-4">Back to Catalog</Button>
         </div>
-      </MainLayout>
     );
   }
 
   return (
-    <MainLayout>
       <div className="grid md:grid-cols-2 gap-8 lg:gap-12 items-start">
         {/* Left Column: Image and Basic Info */}
         <Card className="shadow-xl">
@@ -144,7 +142,7 @@ export default function BikeDetailsPage() {
               </div>
             )}
             <p className="text-foreground/80 mb-4">{bike.description}</p>
-            
+
             <h3 className="font-semibold text-lg mb-2 flex items-center"><Settings className="w-5 h-5 mr-2 text-primary" />Features:</h3>
             <ul className="list-disc list-inside space-y-1 text-sm text-foreground/70">
               {bike.features.map((feature, index) => (
@@ -217,9 +215,9 @@ export default function BikeDetailsPage() {
              <p className="text-sm text-muted-foreground text-right">
               ${bike.pricePerDay}/day for the bike + options
             </p>
-            <Button 
-              size="lg" 
-              className="w-full" 
+            <Button
+              size="lg"
+              className="w-full"
               onClick={handleRentNow}
               disabled={!bike.isAvailable || numberOfDays <= 0}
             >
@@ -229,6 +227,5 @@ export default function BikeDetailsPage() {
           </CardFooter>
         </Card>
       </div>
-    </MainLayout>
   );
 }

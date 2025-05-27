@@ -1,10 +1,11 @@
+
 "use client";
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import type { OrderDetails } from '@/lib/types';
-import MainLayout from '@/components/layout/main-layout';
+// import MainLayout from '@/components/layout/main-layout'; // Removed
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
@@ -56,37 +57,32 @@ export default function CheckoutPage() {
           </Button>
         ),
       });
-      router.push('/rentals'); 
+      router.push('/rentals');
     }, 2000);
   };
-  
+
   if (authLoading || isLoading) {
     return (
-      <MainLayout>
         <div className="flex justify-center items-center h-full">
           <p>Loading checkout details...</p>
         </div>
-      </MainLayout>
     );
   }
 
   if (!orderDetails) {
     return (
-      <MainLayout>
         <div className="text-center py-10">
           <ShoppingCart className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
           <h1 className="text-2xl font-semibold">Your Cart is Empty</h1>
           <p className="text-muted-foreground">Please select a motorbike to rent first.</p>
           <Button onClick={() => router.push('/')} className="mt-4">Browse Bikes</Button>
         </div>
-      </MainLayout>
     );
   }
-  
+
   const { bike, startDate, endDate, options, totalPrice, numDays } = orderDetails;
 
   return (
-    <MainLayout>
       <div className="max-w-4xl mx-auto">
         <Card className="shadow-xl">
           <CardHeader>
@@ -138,7 +134,7 @@ export default function CheckoutPage() {
                 </div>
               </>
             )}
-            
+
             <Separator />
 
             <div>
@@ -177,6 +173,5 @@ export default function CheckoutPage() {
           </CardFooter>
         </Card>
       </div>
-    </MainLayout>
   );
 }

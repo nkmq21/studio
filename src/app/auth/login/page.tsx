@@ -2,7 +2,7 @@
 "use client";
 
 import { AuthForm } from "@/components/auth/auth-form";
-import MainLayout from "@/components/layout/main-layout";
+// import MainLayout from "@/components/layout/main-layout"; // Removed
 import { useAuth } from "@/contexts/auth-context";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
@@ -50,25 +50,21 @@ export default function LoginPage() {
       return "Google login failed. Please try again.";
     }
   };
-  
+
   if (loading || (!loading && isAuthenticated)) {
      return (
-      <MainLayout>
         <div className="flex justify-center items-center h-full">
           <p>Loading...</p>
         </div>
-      </MainLayout>
      );
   }
 
 
   return (
-    <MainLayout>
-      <AuthForm 
-        mode="login" 
-        onSubmit={handleLogin} 
-        onGoogleLogin={handleGoogleLogin} 
+      <AuthForm
+        mode="login"
+        onSubmit={handleLogin}
+        onGoogleLogin={handleGoogleLogin}
       />
-    </MainLayout>
   );
 }
