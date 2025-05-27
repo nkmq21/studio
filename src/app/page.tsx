@@ -3,7 +3,6 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import MainLayout from '@/components/layout/main-layout';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,7 +10,7 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { format, startOfDay, addDays, isValid } from 'date-fns';
+import { format, startOfDay, addDays, isValid, parse } from 'date-fns';
 import { CalendarCheck, Search, CalendarIcon, MapPin } from 'lucide-react';
 import { MOCK_BIKES } from '@/lib/mock-data';
 
@@ -51,10 +50,10 @@ export default function SelectDatesAndLocationPage() {
   }, []);
 
   useEffect(() => {
-    if (availableLocations.length > 0) {
+    if (availableLocations.length > 0 && !selectedLocation) {
       setSelectedLocation(availableLocations[0]); // Default to "Any Location" or first actual location
     }
-  }, [availableLocations]);
+  }, [availableLocations, selectedLocation]);
 
 
   const handleFindBikes = () => {
@@ -105,123 +104,121 @@ export default function SelectDatesAndLocationPage() {
   };
 
   return (
-    <MainLayout>
-      <div className="flex flex-col items-center justify-center min-h-[calc(100vh-12rem)] py-12">
-        <Card className="w-full max-w-lg shadow-xl">
-          <CardHeader className="text-center">
-            <CalendarCheck className="w-12 h-12 mx-auto text-primary mb-4" />
-            <CardTitle className="text-3xl font-bold">Welcome to MotoRent!</CardTitle>
-            <CardDescription className="text-lg text-muted-foreground">
-              Select your rental dates and location to find available motorbikes.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="flex flex-col items-center space-y-6 px-4 md:px-6">
-            <div className="w-full space-y-4">
-              <div>
-                <Label htmlFor="locationSelect" className="mb-1.5 block text-sm font-medium">Rental Location</Label>
-                <Select value={selectedLocation} onValueChange={setSelectedLocation}>
-                  <SelectTrigger id="locationSelect" className="w-full">
-                    <MapPin className="mr-2 h-4 w-4 text-muted-foreground" />
-                    <SelectValue placeholder="Select a location" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {availableLocations.map(loc => (
-                      <SelectItem key={loc} value={loc}>{loc}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+    <div className="flex flex-col items-center justify-center min-h-[calc(100vh-12rem)] py-12">
+      <Card className="w-full max-w-lg shadow-xl">
+        <CardHeader className="text-center">
+          <CalendarCheck className="w-12 h-12 mx-auto text-primary mb-4" />
+          <CardTitle className="text-3xl font-bold">Welcome to MotoRent!</CardTitle>
+          <CardDescription className="text-lg text-muted-foreground">
+            Select your rental dates and location to find available motorbikes.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-col items-center space-y-6 px-4 md:px-6">
+          <div className="w-full space-y-4">
+            <div>
+              <Label htmlFor="locationSelect" className="mb-1.5 block text-sm font-medium">Rental Location</Label>
+              <Select value={selectedLocation} onValueChange={setSelectedLocation}>
+                <SelectTrigger id="locationSelect" className="w-full">
+                  <MapPin className="mr-2 h-4 w-4 text-muted-foreground" />
+                  <SelectValue placeholder="Select a location" />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableLocations.map(loc => (
+                    <SelectItem key={loc} value={loc}>{loc}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
-                <div>
-                  <Label htmlFor="startDatePopover" className="mb-1.5 block text-sm font-medium">Start Date</Label>
-                  <Popover open={isStartDatePickerOpen} onOpenChange={setIsStartDatePickerOpen}>
-                    <PopoverTrigger asChild>
-                      <Button
-                        id="startDatePopover"
-                        variant={"outline"}
-                        className="w-full justify-start text-left font-normal"
-                        disabled={startDate === undefined} // Disable button until date is initialized client-side
-                      >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {startDate && isValid(startDate) ? format(startDate, "PPP") : <span>Pick a date</span>}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0">
-                      <Calendar
-                        mode="single"
-                        selected={startDate}
-                        onSelect={(date) => {
-                          const newStartDate = date ? startOfDay(date) : undefined;
-                          setStartDate(newStartDate);
-                          if (newStartDate && endDate && isValid(newStartDate) && isValid(endDate) && startOfDay(newStartDate) > startOfDay(endDate)) {
-                             setEndDate(undefined);
-                             toast({
-                                  title: "End Date Cleared",
-                                  description: "End date was before the new start date and has been cleared.",
-                                  variant: "destructive",
-                              });
-                          }
-                          setIsStartDatePickerOpen(false);
-                        }}
-                        disabled={{ before: startOfDay(new Date()) }}
-                        initialFocus
-                      />
-                    </PopoverContent>
-                  </Popover>
-                </div>
-                <div>
-                  <Label htmlFor="endDatePopover" className="mb-1.5 block text-sm font-medium">End Date</Label>
-                  <Popover open={isEndDatePickerOpen} onOpenChange={setIsEndDatePickerOpen}>
-                    <PopoverTrigger asChild>
-                       <Button
-                        id="endDatePopover"
-                        variant={"outline"}
-                        className="w-full justify-start text-left font-normal"
-                        disabled={!startDate} 
-                      >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {endDate && isValid(endDate) ? format(endDate, "PPP") : <span>Pick a date</span>}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0">
-                      <Calendar
-                        mode="single"
-                        selected={endDate}
-                        onSelect={(date) => {
-                          const newEndDate = date ? startOfDay(date) : undefined;
-                          setEndDate(newEndDate);
-                          setIsEndDatePickerOpen(false);
-                        }}
-                        disabled={ (startDate && isValid(startDate)) ? { before: startOfDay(startDate) } : { before: startOfDay(new Date()) }}
-                        initialFocus
-                      />
-                    </PopoverContent>
-                  </Popover>
-                </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
+              <div>
+                <Label htmlFor="startDatePopover" className="mb-1.5 block text-sm font-medium">Start Date</Label>
+                <Popover open={isStartDatePickerOpen} onOpenChange={setIsStartDatePickerOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      id="startDatePopover"
+                      variant={"outline"}
+                      className="w-full justify-start text-left font-normal"
+                      disabled={startDate === undefined} // Disable button until date is initialized client-side
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {startDate && isValid(startDate) ? format(startDate, "PPP") : <span>Pick a date</span>}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0">
+                    <Calendar
+                      mode="single"
+                      selected={startDate}
+                      onSelect={(date) => {
+                        const newStartDate = date ? startOfDay(date) : undefined;
+                        setStartDate(newStartDate);
+                        if (newStartDate && endDate && isValid(newStartDate) && isValid(endDate) && startOfDay(newStartDate) > startOfDay(endDate)) {
+                           setEndDate(undefined);
+                           toast({
+                                title: "End Date Cleared",
+                                description: "End date was before the new start date and has been cleared.",
+                                variant: "destructive", // Changed from default to destructive
+                            });
+                        }
+                        setIsStartDatePickerOpen(false);
+                      }}
+                      disabled={{ before: startOfDay(new Date()) }}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+              <div>
+                <Label htmlFor="endDatePopover" className="mb-1.5 block text-sm font-medium">End Date</Label>
+                <Popover open={isEndDatePickerOpen} onOpenChange={setIsEndDatePickerOpen}>
+                  <PopoverTrigger asChild>
+                     <Button
+                      id="endDatePopover"
+                      variant={"outline"}
+                      className="w-full justify-start text-left font-normal"
+                      disabled={!startDate} 
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {endDate && isValid(endDate) ? format(endDate, "PPP") : <span>Pick a date</span>}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0">
+                    <Calendar
+                      mode="single"
+                      selected={endDate}
+                      onSelect={(date) => {
+                        const newEndDate = date ? startOfDay(date) : undefined;
+                        setEndDate(newEndDate);
+                        setIsEndDatePickerOpen(false);
+                      }}
+                      disabled={ (startDate && isValid(startDate)) ? { before: startOfDay(startDate) } : { before: startOfDay(new Date()) }}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
               </div>
             </div>
-            
-            {startDate && endDate && isValid(startDate) && isValid(endDate) && selectedLocation && (
-              <p className="text-sm text-muted-foreground pt-4">
-                Location: {selectedLocation} <br />
-                Period: {format(startDate, "PPP")} - {format(endDate, "PPP")}
-              </p>
-            )}
-          </CardContent>
-          <CardFooter>
-            <Button
-              size="lg"
-              className="w-full"
-              onClick={handleFindBikes}
-              disabled={!startDate || !endDate || !isValid(startDate) || !isValid(endDate) || !selectedLocation}
-            >
-              <Search className="w-5 h-5 mr-2" />
-              Find Bikes
-            </Button>
-          </CardFooter>
-        </Card>
-      </div>
-    </MainLayout>
+          </div>
+          
+          {startDate && endDate && isValid(startDate) && isValid(endDate) && selectedLocation && (
+            <p className="text-sm text-muted-foreground pt-4">
+              Location: {selectedLocation} <br />
+              Period: {format(startDate, "PPP")} - {format(endDate, "PPP")}
+            </p>
+          )}
+        </CardContent>
+        <CardFooter>
+          <Button
+            size="lg"
+            className="w-full"
+            onClick={handleFindBikes}
+            disabled={!startDate || !endDate || !isValid(startDate) || !isValid(endDate) || !selectedLocation}
+          >
+            <Search className="w-5 h-5 mr-2" />
+            Find Bikes
+          </Button>
+        </CardFooter>
+      </Card>
+    </div>
   );
 }
