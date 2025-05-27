@@ -2,7 +2,7 @@
 "use client";
 
 import Link from 'next/link';
-import { Bike, LogIn, LogOut, UserCircle, UserPlus, LayoutDashboard, MessageSquare, History, ShoppingCart, MapPin } from 'lucide-react'; // MapPin kept for potential future use or other contexts
+import { Bike, LogIn, LogOut, UserCircle, UserPlus, LayoutDashboard, MessageSquare, History, ShoppingCart } from 'lucide-react'; // Removed MapPin as it's not used
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/auth-context';
 import {
@@ -35,11 +35,12 @@ export default function Header() {
           <Link href="/bikes" className="text-sm font-medium text-foreground/70 hover:text-primary transition-colors px-1 py-1 md:px-2">
             Bikes
           </Link>
-          {/* Removed Location Finder link */}
-          <Link href="/support" className="text-sm font-medium text-foreground/70 hover:text-primary transition-colors px-1 py-1 md:px-2">
-            <span className="hidden sm:inline">Support</span>
-             <MessageSquare className="sm:hidden h-5 w-5"/>
-          </Link>
+          <Button variant="ghost" asChild className="px-1 py-1 md:px-2 text-sm font-medium text-foreground/70 hover:text-primary hover:bg-transparent">
+            <Link href="/support">
+              <MessageSquare className="h-5 w-5 md:mr-1.5"/>
+              <span className="hidden md:inline">Support</span>
+            </Link>
+          </Button>
 
           {isAuthenticated ? (
             <DropdownMenu>

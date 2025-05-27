@@ -25,7 +25,7 @@ export interface Bike {
 }
 
 export interface Rental {
-  id: string;
+  id:string;
   bikeId: string;
   userId: string;
   startDate: Date;
@@ -51,6 +51,6 @@ export interface OrderDetails {
 export interface ChatMessage {
   id: string;
   text: string;
-  sender: 'user' | 'ai' | 'staff';
+  sender: 'user' | 'ai' | 'staff' | 'system'; // Added 'system' for mode switch messages
   timestamp: Date;
 }
