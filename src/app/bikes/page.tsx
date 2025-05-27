@@ -8,7 +8,7 @@ import type { Bike } from '@/lib/types';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, Filter, ListFilter, RefreshCw, Bike as BikeIcon, CalendarDays, Menu } from 'lucide-react';
+import { Search, Filter, ListFilter, RefreshCw, Bike as BikeIcon, CalendarDays, Menu, CalendarX } from 'lucide-react';
 import { useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { format } from 'date-fns';
@@ -38,12 +38,15 @@ export default function BikesPage() {
   const [availabilityFilter, setAvailabilityFilter] = useState('all');
   const [isLoading, setIsLoading] = useState(true);
   const [selectedDates, setSelectedDates] = useState<SelectedDates | null>(null);
+  const [selectedLocation, setSelectedLocation] = useState<string | null>(null);
   const router = useRouter();
 
   useEffect(() => {
     const storedDatesString = localStorage.getItem('motoRentSelectedDates');
-    if (!storedDatesString) {
-      router.replace('/'); // Redirect to date selection if no dates are found
+    const storedLocationString = localStorage.getItem('motoRentSelectedLocation');
+
+    if (!storedDatesString || !storedLocationString) {
+      router.replace('/'); // Redirect to date selection if no dates/location are found
       return;
     }
 
@@ -54,24 +57,33 @@ export default function BikesPage() {
           from: new Date(parsedDates.from),
           to: new Date(parsedDates.to),
         });
+        setSelectedLocation(storedLocationString);
       } else {
         throw new Error("Invalid date format in localStorage");
       }
     } catch (error) {
-      console.error("Failed to parse dates from localStorage:", error);
-      localStorage.removeItem('motoRentSelectedDates'); // Clear corrupted data
+      console.error("Failed to parse dates/location from localStorage:", error);
+      localStorage.removeItem('motoRentSelectedDates');
+      localStorage.removeItem('motoRentSelectedLocation');
       router.replace('/');
       return;
     }
     
     // Simulate fetching data
     setTimeout(() => {
-      setBikes(MOCK_BIKES);
+      // Filter bikes by location if a specific location (not 'Any Location') is selected
+      const bikesForLocation = selectedLocation && selectedLocation !== 'Any Location'
+        ? MOCK_BIKES.filter(bike => bike.location === selectedLocation)
+        : MOCK_BIKES;
+      setBikes(bikesForLocation);
       setIsLoading(false);
     }, 500);
-  }, [router]);
+  }, [router, selectedLocation]); // Add selectedLocation to dependency array
 
-  const bikeTypes = useMemo(() => ['all', ...new Set(MOCK_BIKES.map(bike => bike.type))], []);
+  const bikeTypes = useMemo(() => {
+     const allTypes = new Set(MOCK_BIKES.map(bike => bike.type));
+    return ['all', ...Array.from(allTypes)];
+  }, []);
 
   const filteredBikes = useMemo(() => {
     return bikes.filter(bike => {
@@ -82,7 +94,6 @@ export default function BikesPage() {
       const matchesAvailability = availabilityFilter === 'all' || 
                                   (availabilityFilter === 'available' && bike.isAvailable) ||
                                   (availabilityFilter === 'unavailable' && !bike.isAvailable);
-      // Date filtering logic would go here if backend supported it
       return matchesSearch && matchesType && matchesAvailability;
     });
   }, [bikes, searchTerm, bikeTypeFilter, availabilityFilter]);
@@ -92,12 +103,18 @@ export default function BikesPage() {
     setBikeTypeFilter('all');
     setAvailabilityFilter('all');
   };
+
+  const handleChangeDatesAndLocation = () => {
+    localStorage.removeItem('motoRentSelectedDates');
+    localStorage.removeItem('motoRentSelectedLocation');
+    router.push('/');
+  };
   
-  if (!selectedDates && !isLoading) { // Handle redirect case before loading completes
+  if ((!selectedDates || !selectedLocation) && !isLoading) { 
     return (
       <MainLayout>
         <div className="flex justify-center items-center h-full">
-          <p>Redirecting to select dates...</p>
+          <p>Redirecting to select dates & location...</p>
         </div>
       </MainLayout>
     );
@@ -165,9 +182,12 @@ export default function BikesPage() {
             <FiltersComponent />
           </SidebarContent>
           <Separator className="mt-auto"/>
-          <SidebarFooter className="p-4">
+          <SidebarFooter className="p-4 space-y-2">
             <Button onClick={resetFilters} variant="outline" className="w-full">
               <RefreshCw className="h-4 w-4 mr-2" /> Reset Filters
+            </Button>
+            <Button onClick={handleChangeDatesAndLocation} variant="outline" className="w-full">
+              <CalendarX className="h-4 w-4 mr-2" /> Change Dates/Location
             </Button>
           </SidebarFooter>
         </Sidebar>
@@ -187,12 +207,13 @@ export default function BikesPage() {
                 </div>
               </div>
               <p className="text-muted-foreground text-base md:text-lg">Browse our extensive catalog of motorbikes available for rent.</p>
-              {selectedDates?.from && selectedDates?.to && (
+              {selectedDates?.from && selectedDates?.to && selectedLocation && (
                 <Alert className="mt-4 text-sm">
                   <CalendarDays className="h-4 w-4" />
-                  <AlertTitle className="font-semibold">Selected Rental Period</AlertTitle>
+                  <AlertTitle className="font-semibold">Selected Rental Details</AlertTitle>
                   <AlertDescription>
-                    Showing bikes for: {format(selectedDates.from, "PPP")} to {format(selectedDates.to, "PPP")}
+                    Location: {selectedLocation} <br/>
+                    Period: {format(selectedDates.from, "PPP")} to {format(selectedDates.to, "PPP")}
                   </AlertDescription>
                 </Alert>
               )}
@@ -222,9 +243,14 @@ export default function BikesPage() {
               <div className="text-center py-12">
                 <BikeIcon className="mx-auto h-24 w-24 text-muted-foreground opacity-50 mb-4" />
                 <h2 className="text-2xl font-semibold text-muted-foreground">No Motorbikes Found</h2>
-                <p className="text-foreground/70 mt-2">Try adjusting your search or filter criteria.</p>
-                <Button onClick={resetFilters} variant="link" className="mt-4 text-primary">
+                <p className="text-foreground/70 mt-2">
+                  No bikes match your current criteria or selected location.
+                </p>
+                <Button onClick={resetFilters} variant="link" className="mt-2 text-primary">
                   Clear all filters
+                </Button>
+                 <Button onClick={handleChangeDatesAndLocation} variant="link" className="mt-2 text-primary">
+                  Change dates or location
                 </Button>
               </div>
             )}
