@@ -108,7 +108,7 @@ export default function SelectDatesAndLocationPage() {
       <Card className="w-full max-w-lg shadow-xl">
         <CardHeader className="text-center">
           <CalendarCheck className="w-12 h-12 mx-auto text-primary mb-4" />
-          <CardTitle className="text-3xl font-bold">Welcome to MotoRent!</CardTitle>
+          <CardTitle className="text-3xl font-bold">Welcome to VroomVroom.vn!</CardTitle>
           <CardDescription className="text-lg text-muted-foreground">
             Select your rental dates and location to find available motorbikes.
           </CardDescription>
@@ -157,7 +157,7 @@ export default function SelectDatesAndLocationPage() {
                            toast({
                                 title: "End Date Cleared",
                                 description: "End date was before the new start date and has been cleared.",
-                                variant: "destructive", // Changed from default to destructive
+                                variant: "destructive", 
                             });
                         }
                         setIsStartDatePickerOpen(false);
