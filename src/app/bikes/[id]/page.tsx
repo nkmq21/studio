@@ -17,14 +17,14 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useToast } from '@/hooks/use-toast';
 import type { DateRange } from 'react-day-picker';
 import { addDays, differenceInDays, format } from 'date-fns';
-import { Tag, Star, DollarSign, MapPinIcon, Settings, CalendarDays, ShoppingCart, AlertCircle, CheckCircle, Package as PackageIcon } from 'lucide-react';
+import { Tag, Star, DollarSign, MapPinIcon, Settings, CalendarDays, ShoppingCart, AlertCircle, CheckCircle, PackageIcon, UserCheck2 } from 'lucide-react';
 import { useAuth } from '@/contexts/auth-context';
 
 export default function BikeDetailsPage() {
   const params = useParams();
   const router = useRouter();
   const { toast } = useToast();
-  const { isAuthenticated } = useAuth();
+  const { user, isAuthenticated } = useAuth(); // Get user from auth context
   const [bike, setBike] = useState<Bike | null>(null);
   const [dateRange, setDateRange] = useState<DateRange | undefined>({
     from: new Date(),
@@ -65,7 +65,6 @@ export default function BikeDetailsPage() {
     let rentedCountDuringPeriod = 0;
 
     MOCK_RENTALS.forEach(rental => {
-      // Assuming each rental in MOCK_RENTALS is for one bike of this type
       if (rental.bikeId === bike.id && (rental.status === 'Active' || rental.status === 'Upcoming')) {
         const rentalStartTime = new Date(rental.startDate).getTime();
         const rentalEndTime = new Date(rental.endDate).getTime();
@@ -79,9 +78,8 @@ export default function BikeDetailsPage() {
     setQuantityAvailableForDates(Math.max(0, calculatedQuantityAvailable));
     setIsAvailableForDates(calculatedQuantityAvailable > 0);
 
-  }, [bike, dateRange]); // MOCK_RENTALS is stable
+  }, [bike, dateRange]);
 
-  // Adjust desiredQuantity if quantityAvailableForDates changes
    useEffect(() => {
     if (quantityAvailableForDates === 0) {
       setDesiredQuantity(0);
@@ -90,10 +88,9 @@ export default function BikeDetailsPage() {
     } else if (desiredQuantity <= 0 && quantityAvailableForDates > 0) {
       setDesiredQuantity(1);
     }
-  }, [quantityAvailableForDates]);
+  }, [quantityAvailableForDates, desiredQuantity]);
 
 
-  // Calculate total price
   useEffect(() => {
     if (bike && dateRange?.from && dateRange?.to && desiredQuantity > 0 && numberOfDays > 0) {
       const baseBikeCost = bike.pricePerDay * numberOfDays * desiredQuantity;
@@ -105,7 +102,6 @@ export default function BikeDetailsPage() {
     }
   }, [bike, dateRange, selectedOptions, desiredQuantity, numberOfDays]);
 
-  // Calculate number of days
   useEffect(() => {
     if (dateRange?.from && dateRange?.to) {
         const days = differenceInDays(dateRange.to, dateRange.from) + 1;
@@ -127,9 +123,9 @@ export default function BikeDetailsPage() {
   const handleDesiredQuantityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let newQuantity = parseInt(e.target.value, 10);
     if (isNaN(newQuantity)) {
-      newQuantity = 0; // Or 1 if you don't want 0
+      newQuantity = 0; 
     }
-    if (newQuantity < 0) newQuantity = 0; // Or 1
+    if (newQuantity < 0) newQuantity = 0;
     if (quantityAvailableForDates > 0 && newQuantity > quantityAvailableForDates) {
       newQuantity = quantityAvailableForDates;
     }
@@ -139,18 +135,38 @@ export default function BikeDetailsPage() {
     setDesiredQuantity(newQuantity);
   };
 
-  const handleRentNow = () => {
+  const hasCredentials = !!(user?.credentialIdNumber && user.credentialIdImageUrl);
+
+  const canProceedToRent = 
+    bike && // Ensure bike is loaded
+    bike.isAvailable &&
+    numberOfDays > 0 &&
+    isAvailableForDates === true &&
+    desiredQuantity > 0 &&
+    desiredQuantity <= quantityAvailableForDates;
+
+  const handleRentAction = () => {
     if (!isAuthenticated) {
       toast({
         title: "Authentication Required",
         description: "Please log in to rent a motorbike.",
         variant: "destructive",
       });
-      router.push('/auth/login?redirect=' + encodeURIComponent(window.location.pathname));
+      router.push('/auth/login?redirect=' + encodeURIComponent(window.location.pathname + window.location.search));
       return;
     }
 
-    if (!bike || !dateRange?.from || !dateRange?.to || numberOfDays <= 0 || !isAvailableForDates || desiredQuantity <= 0 || desiredQuantity > quantityAvailableForDates) {
+    if (!hasCredentials) {
+      toast({
+        title: "Credentials Required",
+        description: "Please update your profile with your credential ID and ID image to rent a motorbike.",
+        variant: "destructive",
+        action: <Button onClick={() => router.push('/profile?redirect=' + encodeURIComponent(window.location.pathname + window.location.search))}>Go to Profile</Button>
+      });
+      return;
+    }
+
+    if (!canProceedToRent || !bike || !dateRange?.from || !dateRange?.to) { // Redundant check, but good safeguard
       toast({
         title: "Rental Not Possible",
         description: "Please select a valid date range, ensure bike availability, and set a valid quantity.",
@@ -172,6 +188,7 @@ export default function BikeDetailsPage() {
     router.push('/checkout');
   };
 
+
   if (!bike) {
     return (
         <div className="text-center py-10">
@@ -183,7 +200,28 @@ export default function BikeDetailsPage() {
     );
   }
 
-  const canRent = bike.isAvailable && numberOfDays > 0 && isAvailableForDates === true && desiredQuantity > 0 && desiredQuantity <= quantityAvailableForDates;
+  let rentButtonText = "Rent Now & Proceed to Checkout";
+  let rentButtonDisabled = false;
+  let rentButtonIcon = <ShoppingCart className="w-5 h-5 mr-2" />;
+
+  if (!isAuthenticated) {
+    rentButtonText = "Login to Rent";
+    rentButtonIcon = <UserCheck2 className="w-5 h-5 mr-2" />;
+    rentButtonDisabled = false; // Not disabled, action changes
+  } else if (!hasCredentials) {
+    rentButtonText = "Update Profile to Rent";
+    rentButtonIcon = <UserCheck2 className="w-5 h-5 mr-2" />;
+    rentButtonDisabled = false; // Not disabled, action changes
+  } else if (!canProceedToRent) {
+    rentButtonDisabled = true;
+    if (!bike.isAvailable) rentButtonText = 'Bike Model Unavailable';
+    else if (numberOfDays <=0 && dateRange?.from && dateRange?.to) rentButtonText = 'Select Valid Dates';
+    else if (!isAvailableForDates && dateRange?.from && dateRange?.to) rentButtonText = 'Unavailable for Dates';
+    else if (quantityAvailableForDates > 0 && desiredQuantity <= 0) rentButtonText = 'Select Quantity';
+    else if (desiredQuantity > quantityAvailableForDates) rentButtonText = 'Quantity Exceeds Stock';
+    else rentButtonText = 'Check Rental Details';
+  }
+
 
   return (
       <div className="grid md:grid-cols-2 gap-8 lg:gap-12 items-start">
@@ -263,14 +301,14 @@ export default function BikeDetailsPage() {
               )}
             </div>
             
-            {isAvailableForDates !== null && dateRange?.from && dateRange?.to && (
-              <Alert variant={isAvailableForDates ? "default" : "destructive"} className="mb-0">
-                {isAvailableForDates ? <CheckCircle className="h-4 w-4 text-green-500" /> : <AlertCircle className="h-4 w-4" />}
+            {isAvailableForDates !== null && dateRange?.from && dateRange?.to && bike.isAvailable && (
+              <Alert variant={isAvailableForDates && quantityAvailableForDates > 0 ? "default" : "destructive"} className="mb-0">
+                {isAvailableForDates && quantityAvailableForDates > 0 ? <CheckCircle className="h-4 w-4 text-green-500" /> : <AlertCircle className="h-4 w-4" />}
                 <AlertTitle>
-                  {isAvailableForDates ? "Bike Availability" : "Bike Not Available"}
+                  {isAvailableForDates && quantityAvailableForDates > 0 ? "Bike Availability" : "Bike Not Available"}
                 </AlertTitle>
                 <AlertDescription>
-                  {isAvailableForDates
+                  {isAvailableForDates && quantityAvailableForDates > 0
                     ? `${quantityAvailableForDates} unit(s) of this motorbike ${quantityAvailableForDates === 1 ? 'is' : 'are'} available for your selected dates.`
                     : "This motorbike is not available for the selected period, or not enough units are available. Please choose different dates or another bike."}
                 </AlertDescription>
@@ -286,12 +324,12 @@ export default function BikeDetailsPage() {
                 id="quantity"
                 value={desiredQuantity}
                 onChange={handleDesiredQuantityChange}
-                min={quantityAvailableForDates > 0 ? 1 : 0}
+                min={bike.isAvailable && quantityAvailableForDates > 0 ? 1 : 0}
                 max={quantityAvailableForDates}
                 className="w-full"
-                disabled={!isAvailableForDates || quantityAvailableForDates === 0}
+                disabled={!bike.isAvailable || !isAvailableForDates || quantityAvailableForDates === 0}
               />
-              {isAvailableForDates && quantityAvailableForDates > 0 && (
+              {bike.isAvailable && isAvailableForDates && quantityAvailableForDates > 0 && (
                  <p className="text-xs text-muted-foreground mt-1">Max available: {quantityAvailableForDates}</p>
               )}
             </div>
@@ -328,17 +366,22 @@ export default function BikeDetailsPage() {
             <Button
               size="lg"
               className="w-full"
-              onClick={handleRentNow}
-              disabled={!canRent}
+              onClick={handleRentAction}
+              disabled={rentButtonDisabled}
             >
-              <ShoppingCart className="w-5 h-5 mr-2" />
-              {canRent ? 'Rent Now & Proceed to Checkout' : 
-                (!isAvailableForDates ? 'Unavailable for Dates' : 
-                 desiredQuantity <= 0 ? 'Select Quantity' : 
-                 desiredQuantity > quantityAvailableForDates ? 'Quantity Exceeds Stock' : 'Check Details')}
+              {rentButtonIcon}
+              {rentButtonText}
             </Button>
+             {!isAuthenticated && (
+                <p className="text-xs text-muted-foreground text-center">Log in to see personalized rental options.</p>
+            )}
+            {isAuthenticated && !hasCredentials && (
+                <p className="text-xs text-destructive text-center">Please complete your profile with ID credentials to enable rentals.</p>
+            )}
           </CardFooter>
         </Card>
       </div>
   );
 }
+
+    

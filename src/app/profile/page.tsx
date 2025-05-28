@@ -41,9 +41,12 @@ export default function ProfilePage() {
       setDateOfBirth(user.dateOfBirth || '');
       setAddress(user.address || '');
       setCredentialIdNumber(user.credentialIdNumber || '');
-      setCredentialIdImagePreview(user.credentialIdImageUrl || null);
+      // Ensure existing image URL from user object is used for preview if available and no new file selected
+      if (!credentialIdImageFile && user.credentialIdImageUrl) {
+        setCredentialIdImagePreview(user.credentialIdImageUrl);
+      }
     }
-  }, [user, isAuthenticated, authLoading, router]);
+  }, [user, isAuthenticated, authLoading, router, credentialIdImageFile]);
 
   const handleSaveProfile = (e: React.FormEvent) => {
     e.preventDefault();
@@ -94,7 +97,7 @@ export default function ProfilePage() {
       reader.readAsDataURL(file);
     } else {
       setCredentialIdImageFile(null);
-      setCredentialIdImagePreview(user?.credentialIdImageUrl || null); // Revert to stored if deselected
+      setCredentialIdImagePreview(user?.credentialIdImageUrl || null); 
     }
   };
 
@@ -102,15 +105,13 @@ export default function ProfilePage() {
     e.preventDefault();
     if (!user) return;
 
-    let imageUrlToSave = user.credentialIdImageUrl; // Keep existing if no new file
+    let imageUrlToSave = user.credentialIdImageUrl; 
     if (credentialIdImageFile) {
-        // In a real app, upload credentialIdImageFile and get back a URL
-        // For mock, we'll use the Data URI preview if a new file was selected
         imageUrlToSave = credentialIdImagePreview || undefined;
     }
     
     const success = await updateUserCredentials({
-      credentialIdNumber: credentialIdNumber || undefined, // Store as undefined if empty string
+      credentialIdNumber: credentialIdNumber || undefined, 
       credentialIdImageUrl: imageUrlToSave,
     });
 
@@ -224,8 +225,8 @@ export default function ProfilePage() {
                 </div>
               </div>
             )}
-             {(!user.credentialIdNumber && !user.credentialIdImageUrl) && (
-                <p className="text-sm text-destructive">Your credential ID is missing. Please provide it to enable rentals.</p>
+             {(!user.credentialIdNumber || !user.credentialIdImageUrl) && (
+                <p className="text-sm text-destructive mt-2">Your credential ID is missing. Please provide it to enable rentals.</p>
             )}
           </CardContent>
           <CardFooter>
@@ -268,3 +269,5 @@ export default function ProfilePage() {
     </div>
   );
 }
+
+    
