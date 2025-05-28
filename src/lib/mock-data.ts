@@ -1,11 +1,44 @@
 
 import type { Bike, User, Rental } from './types';
-import { addDays } from 'date-fns';
+import { addDays, subDays } from 'date-fns';
 
 export const MOCK_USERS: User[] = [
-  { id: 'user1', email: 'renter@motorent.com', name: 'Alice Wonderland', role: 'renter', avatarUrl: 'https://placehold.co/100x100.png' },
-  { id: 'user2', email: 'admin@motorent.com', name: 'Bob The Builder', role: 'admin', avatarUrl: 'https://placehold.co/100x100.png' },
-  { id: 'user3', email: 'staff@motorent.com', name: 'Charlie Brown', role: 'staff', avatarUrl: 'https://placehold.co/100x100.png' },
+  {
+    id: 'user1',
+    email: 'renter@motorent.com',
+    name: 'Alice Wonderland',
+    role: 'renter',
+    avatarUrl: 'https://placehold.co/100x100.png',
+    lastLogin: subDays(new Date(), 2),
+    feedbackCount: 3,
+  },
+  {
+    id: 'user2',
+    email: 'admin@motorent.com',
+    name: 'Bob The Builder',
+    role: 'admin',
+    avatarUrl: 'https://placehold.co/100x100.png',
+    lastLogin: subDays(new Date(), 1),
+    feedbackCount: 0,
+  },
+  {
+    id: 'user3',
+    email: 'staff@motorent.com',
+    name: 'Charlie Brown',
+    role: 'staff',
+    avatarUrl: 'https://placehold.co/100x100.png',
+    lastLogin: new Date(),
+    feedbackCount: 1,
+  },
+  {
+    id: 'user4',
+    email: 'new.renter@example.com',
+    name: 'Diana Prince',
+    role: 'renter',
+    avatarUrl: 'https://placehold.co/100x100.png',
+    lastLogin: subDays(new Date(), 5),
+    feedbackCount: 0,
+  },
 ];
 
 export const MOCK_BIKES: Bike[] = [

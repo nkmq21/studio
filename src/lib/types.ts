@@ -7,6 +7,8 @@ export interface User {
   name: string;
   role: UserRole;
   avatarUrl?: string;
+  lastLogin?: Date; // Added for user management
+  feedbackCount?: number; // Added for user management
 }
 
 export interface Bike {
@@ -17,7 +19,7 @@ export interface Bike {
   pricePerDay: number;
   description: string;
   features: string[];
-  location: string; 
+  location: string;
   rating?: number; // Optional: 1-5 stars
   isAvailable?: boolean; // Simplified availability
   amount: number; // Total stock of this bike model
@@ -34,7 +36,7 @@ export interface Rental {
   options: string[]; // e.g., 'helmet', 'insurance'
   status: 'Upcoming' | 'Active' | 'Completed' | 'Cancelled';
   // Denormalized data for easier display
-  bikeName: string; 
+  bikeName: string;
   bikeImageUrl: string;
   orderDate: Date;
   // quantity?: number; // Future: if a single rental record can be for multiple bikes

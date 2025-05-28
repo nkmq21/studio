@@ -17,7 +17,7 @@ import {
 } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { ShieldAlert, Bike as BikeIconLucide, ListChecks, CalendarClock, LayoutDashboard, Menu } from 'lucide-react';
+import { ShieldAlert, Bike as BikeIconLucide, ListChecks, CalendarClock, LayoutDashboard, Menu, Users } from 'lucide-react';
 
 interface AdminLayoutProps {
   children: ReactNode;
@@ -28,6 +28,7 @@ const navItems = [
   { href: '/admin/fleet', label: 'Fleet Management', icon: BikeIconLucide },
   { href: '/admin/rentals/active', label: 'Active Rentals', icon: ListChecks },
   { href: '/admin/rentals/upcoming', label: 'Upcoming Rentals', icon: CalendarClock },
+  { href: '/admin/users', label: 'User Management', icon: Users },
 ];
 
 export default function AdminLayout({ children }: AdminLayoutProps) {
@@ -68,7 +69,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
             {navItems.map((item) => (
               <Button
                 key={item.label}
-                variant={pathname === item.href ? 'secondary' : 'ghost'}
+                variant={pathname === item.href || (pathname.startsWith(item.href) && item.href !== '/admin') ? 'secondary' : 'ghost'}
                 className="w-full justify-start"
                 asChild
               >
