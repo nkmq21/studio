@@ -2,7 +2,6 @@
 "use client";
 
 import { AuthForm } from "@/components/auth/auth-form";
-// import MainLayout from "@/components/layout/main-layout"; // Removed
 import { useAuth } from "@/contexts/auth-context";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
@@ -24,7 +23,7 @@ export default function SignupPage() {
     // Default role to 'renter' for this example
     const success = await signup(values.name, values.email, values.password, 'renter' as UserRole);
     if (success) {
-      toast({ title: "Signup Successful", description: "Welcome to MotoRent!" });
+      toast({ title: "Signup Successful", description: "Welcome to VroomVroom.vn!" });
       router.push("/");
       return true;
     } else {

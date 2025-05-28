@@ -105,7 +105,7 @@ export default function ChatWidget({ isOpen, onClose }: ChatWidgetProps) {
 
       const staffResponseMessage: ChatMessageType = {
         id: `staff-response-${Date.now()}`,
-        text: "Hello! This is MotoRent Staff Support. A real person will be with you shortly. In the meantime, please describe your issue.",
+        text: "Hello! This is VroomVroom.vn Staff Support. A real person will be with you shortly. In the meantime, please describe your issue.",
         sender: 'staff',
         timestamp: new Date(),
       };

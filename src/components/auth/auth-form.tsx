@@ -82,8 +82,8 @@ export function AuthForm({ mode, onSubmit, onGoogleLogin }: AuthFormProps) {
           </CardTitle>
           <CardDescription className="text-center">
             {mode === "login"
-              ? "Log in to access your MotoRent account."
-              : "Sign up to start renting motorbikes."}
+              ? "Log in to access your VroomVroom.vn account."
+              : "Sign up to start renting motorbikes with VroomVroom.vn."}
           </CardDescription>
         </CardHeader>
         <CardContent>

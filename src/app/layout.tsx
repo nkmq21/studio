@@ -6,7 +6,7 @@ import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
 import { AuthProvider } from '@/contexts/auth-context';
 import { Toaster } from '@/components/ui/toaster';
-import React, { useState } from 'react'; 
+import React, { useState, useEffect } from 'react'; 
 import Header from '@/components/layout/header';
 import Footer from '@/components/layout/footer';
 import ChatWidget from '@/components/chat/chat-widget';
@@ -23,8 +23,8 @@ const geistMono = Geist_Mono({
 });
 
 // export const metadata: Metadata = {
-//   title: 'MotoRent',
-//   description: 'Rent your next adventure on two wheels.',
+//   title: 'VroomVroom.vn',
+//   description: 'Your next adventure on two wheels, from VroomVroom.vn.',
 // };
 
 export default function RootLayout({

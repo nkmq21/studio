@@ -33,7 +33,7 @@ export default function Header({ toggleChatWidget }: HeaderProps) {
       <div className="container flex h-16 max-w-screen-2xl items-center justify-between">
         <Link href="/" className="flex items-center space-x-2 text-primary hover:text-primary/80 transition-colors">
           <Bike className="h-8 w-8" />
-          <span className="font-bold text-xl">MotoRent</span>
+          <span className="font-bold text-xl">VroomVroom.vn</span>
         </Link>
         <nav className="flex items-center space-x-2 md:space-x-4 lg:space-x-6">
           <Link href="/bikes" className="text-sm font-medium text-foreground/70 hover:text-primary transition-colors px-1 py-1 md:px-2">
