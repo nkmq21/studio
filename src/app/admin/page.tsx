@@ -29,7 +29,7 @@ export default function AdminOverviewPage() {
             </p>
             <div className="flex justify-center">
               <Button asChild variant="outline" className="w-full">
-                <Link href="/admin/fleet">Go to Fleet Management <ArrowRight className="ml-2 h-4 w-4" /></Link>
+                <Link href="/admin/fleet">Go to Fleet Management <ArrowRight className="h-4 w-4" /></Link>
               </Button>
             </div>
           </CardContent>
@@ -46,7 +46,7 @@ export default function AdminOverviewPage() {
             </p>
             <div className="flex justify-center">
               <Button asChild variant="outline" className="w-full">
-                <Link href="/admin/rentals/active">View Active Rentals <ArrowRight className="ml-2 h-4 w-4" /></Link>
+                <Link href="/admin/rentals/active">View Active Rentals <ArrowRight className="h-4 w-4" /></Link>
               </Button>
             </div>
           </CardContent>
@@ -63,7 +63,7 @@ export default function AdminOverviewPage() {
             </p>
             <div className="flex justify-center">
               <Button asChild variant="outline" className="w-full">
-                <Link href="/admin/rentals/upcoming">View Upcoming Rentals <ArrowRight className="ml-2 h-4 w-4" /></Link>
+                <Link href="/admin/rentals/upcoming">View Upcoming Rentals <ArrowRight className="h-4 w-4" /></Link>
               </Button>
             </div>
           </CardContent>
@@ -80,7 +80,7 @@ export default function AdminOverviewPage() {
             </p>
             <div className="flex justify-center">
               <Button asChild variant="outline" className="w-full">
-                <Link href="/admin/users">Go to User Management <UsersIconLucide className="ml-2 h-4 w-4" /></Link>
+                <Link href="/admin/users">Go to User Management <UsersIconLucide className="h-4 w-4" /></Link>
               </Button>
             </div>
           </CardContent>
