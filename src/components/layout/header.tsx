@@ -2,7 +2,7 @@
 "use client";
 
 import Link from 'next/link';
-import { Bike, LogIn, LogOut, UserCircle, UserPlus, LayoutDashboard, MessageSquare, History, ShoppingCart, X } from 'lucide-react';
+import { Bike, LogIn, LogOut, UserCircle, UserPlus, LayoutDashboard, MessageSquare, History, ShoppingCart, SettingsIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/auth-context';
 import {
@@ -68,6 +68,12 @@ export default function Header({ toggleChatWidget }: HeaderProps) {
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
+                 <DropdownMenuItem asChild>
+                  <Link href="/profile" className="flex items-center">
+                    <SettingsIcon className="mr-2 h-4 w-4" />
+                    My Profile
+                  </Link>
+                </DropdownMenuItem>
                 {user?.role === 'admin' && (
                   <DropdownMenuItem asChild>
                     <Link href="/admin" className="flex items-center">

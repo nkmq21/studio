@@ -11,6 +11,8 @@ export const MOCK_USERS: User[] = [
     avatarUrl: 'https://placehold.co/100x100.png',
     lastLogin: subDays(new Date(), 2),
     feedbackCount: 3,
+    dateOfBirth: '1990-05-15',
+    address: '123 Main St, Wonderland',
   },
   {
     id: 'user2',
@@ -20,6 +22,8 @@ export const MOCK_USERS: User[] = [
     avatarUrl: 'https://placehold.co/100x100.png',
     lastLogin: subDays(new Date(), 1),
     feedbackCount: 0,
+    dateOfBirth: '1985-10-20',
+    address: '456 Tool Ave, Build City',
   },
   {
     id: 'user3',
@@ -29,6 +33,8 @@ export const MOCK_USERS: User[] = [
     avatarUrl: 'https://placehold.co/100x100.png',
     lastLogin: new Date(),
     feedbackCount: 1,
+    dateOfBirth: '1995-02-10',
+    address: '789 Comic Strip, Peanuts Town',
   },
   {
     id: 'user4',
@@ -38,6 +44,8 @@ export const MOCK_USERS: User[] = [
     avatarUrl: 'https://placehold.co/100x100.png',
     lastLogin: subDays(new Date(), 5),
     feedbackCount: 0,
+    dateOfBirth: '1980-03-22',
+    address: '1 Justice Way, Themyscira',
   },
 ];
 
@@ -46,7 +54,7 @@ export const MOCK_BIKES: Bike[] = [
     id: 'bike1',
     name: 'Urban Sprinter Z250',
     type: 'Scooter',
-    imageUrl: 'https://placehold.co/600x400.png',
+    imageUrl: 'https://placehold.co/600x400.png" data-ai-hint="scooter city',
     pricePerDay: 45,
     description: 'Navigate the city streets with ease on this agile and fuel-efficient scooter. Perfect for daily commutes and quick errands.',
     features: ['Automatic Transmission', 'ABS', 'LED Headlights', 'USB Charger', 'Under-seat Storage'],
@@ -60,7 +68,7 @@ export const MOCK_BIKES: Bike[] = [
     id: 'bike2',
     name: 'Adventure Pro 500X',
     type: 'Adventure',
-    imageUrl: 'https://placehold.co/600x400.png',
+    imageUrl: 'https://placehold.co/600x400.png" data-ai-hint="adventure motorcycle',
     pricePerDay: 75,
     description: 'Conquer any terrain with this rugged adventure bike. Equipped for long journeys and off-road exploration.',
     features: ['Manual 6-Speed', 'Switchable ABS', 'Spoke Wheels', 'Luggage Racks', 'Windscreen'],
@@ -74,7 +82,7 @@ export const MOCK_BIKES: Bike[] = [
     id: 'bike3',
     name: 'Speedster R1000',
     type: 'Sport',
-    imageUrl: 'https://placehold.co/600x400.png',
+    imageUrl: 'https://placehold.co/600x400.png" data-ai-hint="sport motorcycle',
     pricePerDay: 120,
     description: 'Experience thrilling performance with this high-powered sportbike. Precision handling and blistering acceleration.',
     features: ['Manual 6-Speed', 'Quick Shifter', 'Traction Control', 'Full Fairing', 'Performance Exhaust'],
@@ -88,7 +96,7 @@ export const MOCK_BIKES: Bike[] = [
     id: 'bike4',
     name: 'Classic Rider V-Twin',
     type: 'Cruiser',
-    imageUrl: 'https://placehold.co/600x400.png',
+    imageUrl: 'https://placehold.co/600x400.png" data-ai-hint="classic motorcycle',
     pricePerDay: 90,
     description: 'Ride in style with this iconic V-twin cruiser. Timeless design combined with modern comfort for the open road.',
     features: ['Manual 5-Speed', 'Chrome Accents', 'Leather Saddlebags', 'Comfort Seat', 'Loud Pipes'],
@@ -102,7 +110,7 @@ export const MOCK_BIKES: Bike[] = [
     id: 'bike5',
     name: 'EcoVolt Commuter',
     type: 'Electric',
-    imageUrl: 'https://placehold.co/600x400.png',
+    imageUrl: 'https://placehold.co/600x400.png" data-ai-hint="electric scooter',
     pricePerDay: 55,
     description: 'Silent, eco-friendly, and zippy. The ideal electric scooter for sustainable urban mobility.',
     features: ['Automatic', 'Regenerative Braking', 'Digital Display', 'Removable Battery', 'Quiet Operation'],
@@ -141,13 +149,6 @@ export const MOCK_BIKES: Bike[] = [
     cylinderVolume: 749,
   },
 ];
-
-// Add data-ai-hint to imageUrls after definition
-MOCK_BIKES.find(b => b.id === 'bike1')!.imageUrl = 'https://placehold.co/600x400.png" data-ai-hint="scooter city';
-MOCK_BIKES.find(b => b.id === 'bike2')!.imageUrl = 'https://placehold.co/600x400.png" data-ai-hint="adventure motorcycle';
-MOCK_BIKES.find(b => b.id === 'bike3')!.imageUrl = 'https://placehold.co/600x400.png" data-ai-hint="sport motorcycle';
-MOCK_BIKES.find(b => b.id === 'bike4')!.imageUrl = 'https://placehold.co/600x400.png" data-ai-hint="classic motorcycle';
-MOCK_BIKES.find(b => b.id === 'bike5')!.imageUrl = 'https://placehold.co/600x400.png" data-ai-hint="electric scooter';
 
 
 export const MOCK_RENTALS: Rental[] = [

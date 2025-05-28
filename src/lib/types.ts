@@ -9,6 +9,8 @@ export interface User {
   avatarUrl?: string;
   lastLogin?: Date; // Added for user management
   feedbackCount?: number; // Added for user management
+  dateOfBirth?: string; // For profile page
+  address?: string; // For profile page
 }
 
 export interface Bike {
