@@ -1,7 +1,7 @@
 
 "use client";
 
-import { ShieldAlert } from 'lucide-react';
+import { ShieldAlert, Users as UsersIconLucide } from 'lucide-react'; // Added UsersIconLucide
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -14,7 +14,7 @@ export default function AdminOverviewPage() {
         <h1 className="text-4xl font-bold text-primary mb-2 flex items-center">
           <ShieldAlert className="w-10 h-10 mr-3 text-destructive" /> Admin Dashboard Overview
         </h1>
-        <p className="text-muted-foreground text-lg">Welcome to the MotoRent admin panel. Manage bikes, rentals, and site operations using the sidebar navigation.</p>
+        <p className="text-muted-foreground text-lg">Welcome to the MotoRent admin panel. Manage bikes, rentals, users, and site operations using the sidebar navigation.</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -64,6 +64,23 @@ export default function AdminOverviewPage() {
             <div className="flex justify-center">
               <Button asChild variant="outline" className="w-full">
                 <Link href="/admin/rentals/upcoming">View Upcoming Rentals <ArrowRight className="ml-2 h-4 w-4" /></Link>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="hover:shadow-lg transition-shadow">
+          <CardHeader>
+            <CardTitle>User Management</CardTitle>
+            <CardDescription>Manage user accounts, roles, and permissions.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground mb-4">
+              View all registered users, modify their roles, or remove accounts as needed.
+            </p>
+            <div className="flex justify-center">
+              <Button asChild variant="outline" className="w-full">
+                <Link href="/admin/users">Go to User Management <UsersIconLucide className="ml-2 h-4 w-4" /></Link>
               </Button>
             </div>
           </CardContent>
