@@ -5,14 +5,13 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import type { OrderDetails } from '@/lib/types';
-// import MainLayout from '@/components/layout/main-layout'; // Removed
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
-import { CalendarDays, Tag, DollarSign, CheckCircle, List, CreditCard, ShoppingCart, AlertTriangle } from 'lucide-react';
+import { CalendarDays, Tag, DollarSign, CheckCircle, List, CreditCard, ShoppingCart, AlertTriangle, PackageIcon } from 'lucide-react';
 import { useAuth } from '@/contexts/auth-context';
 
 export default function CheckoutPage() {
@@ -30,7 +29,16 @@ export default function CheckoutPage() {
 
     const storedOrder = localStorage.getItem('currentOrder');
     if (storedOrder) {
-      setOrderDetails(JSON.parse(storedOrder));
+      try {
+        const parsedOrder = JSON.parse(storedOrder);
+        // Ensure dates are Date objects
+        parsedOrder.startDate = new Date(parsedOrder.startDate);
+        parsedOrder.endDate = new Date(parsedOrder.endDate);
+        setOrderDetails(parsedOrder);
+      } catch (error) {
+        console.error("Error parsing order details from localStorage:", error);
+        localStorage.removeItem('currentOrder'); // Clear corrupted data
+      }
     }
     setIsLoading(false);
   }, [router, isAuthenticated, authLoading]);
@@ -38,19 +46,16 @@ export default function CheckoutPage() {
   const handleConfirmPayment = () => {
     if (!orderDetails) return;
 
-    // Simulate payment processing
     toast({
       title: "Payment Processing...",
       description: "Please wait while we confirm your rental.",
     });
 
     setTimeout(() => {
-      // In a real app, this would interact with a backend and payment gateway
-      // For now, we'll just "confirm" it and clear the stored order
       localStorage.removeItem('currentOrder');
       toast({
         title: "Rental Confirmed!",
-        description: `Your ${orderDetails.bike.name} rental is confirmed from ${format(orderDetails.startDate, "PPP")} to ${format(orderDetails.endDate, "PPP")}.`,
+        description: `Your rental of ${orderDetails.quantityRented} x ${orderDetails.bike.name} is confirmed from ${format(orderDetails.startDate, "PPP")} to ${format(orderDetails.endDate, "PPP")}.`,
         action: (
           <Button variant="outline" size="sm" onClick={() => router.push('/rentals')}>
             View Rentals
@@ -80,7 +85,10 @@ export default function CheckoutPage() {
     );
   }
 
-  const { bike, startDate, endDate, options, totalPrice, numDays } = orderDetails;
+  const { bike, startDate, endDate, options, totalPrice, numDays, quantityRented } = orderDetails;
+  const bikeSubtotal = bike.pricePerDay * numDays * quantityRented;
+  const optionsSubtotal = options.reduce((sum, opt) => sum + opt.price, 0) * numDays;
+
 
   return (
       <div className="max-w-4xl mx-auto">
@@ -103,9 +111,10 @@ export default function CheckoutPage() {
               <div className="md:col-span-2">
                 <h2 className="text-2xl font-semibold">{bike.name}</h2>
                 <p className="text-muted-foreground flex items-center"><Tag className="w-4 h-4 mr-2" />{bike.type}</p>
+                 <p className="text-muted-foreground flex items-center"><PackageIcon className="w-4 h-4 mr-2" />Quantity: {quantityRented}</p>
                 <p className="text-muted-foreground flex items-center">
                   <DollarSign className="w-4 h-4 mr-2" />
-                  ${bike.pricePerDay}/day
+                  ${bike.pricePerDay.toFixed(2)}/day per unit
                 </p>
               </div>
             </div>
@@ -128,7 +137,7 @@ export default function CheckoutPage() {
                   <h3 className="text-xl font-semibold mb-3 flex items-center"><List className="w-5 h-5 mr-2 text-primary" />Selected Options</h3>
                   <ul className="space-y-1 text-sm list-disc list-inside pl-1">
                     {options.map(opt => (
-                      <li key={opt.id}>{opt.name} (+${opt.price}/day)</li>
+                      <li key={opt.id}>{opt.name} (+${opt.price.toFixed(2)}/day for the rental period)</li>
                     ))}
                   </ul>
                 </div>
@@ -148,13 +157,13 @@ export default function CheckoutPage() {
               </Alert>
               <div className="mt-4 p-4 border rounded-lg bg-card-foreground/5">
                 <div className="flex justify-between text-sm mb-1">
-                  <span>Bike Rental ({numDays} {numDays === 1 ? 'day' : 'days'}):</span>
-                  <span>${(bike.pricePerDay * numDays).toFixed(2)}</span>
+                  <span>Bike Rental ({numDays} {numDays === 1 ? 'day' : 'days'} x {quantityRented} unit(s)):</span>
+                  <span>${bikeSubtotal.toFixed(2)}</span>
                 </div>
                 {options.length > 0 && (
                   <div className="flex justify-between text-sm mb-1">
                     <span>Options ({numDays} {numDays === 1 ? 'day' : 'days'}):</span>
-                    <span>${(options.reduce((sum, opt) => sum + opt.price, 0) * numDays).toFixed(2)}</span>
+                    <span>${optionsSubtotal.toFixed(2)}</span>
                   </div>
                 )}
                 <Separator className="my-2" />

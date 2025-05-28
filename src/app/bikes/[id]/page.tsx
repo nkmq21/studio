@@ -10,13 +10,14 @@ import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useToast } from '@/hooks/use-toast';
 import type { DateRange } from 'react-day-picker';
 import { addDays, differenceInDays, format } from 'date-fns';
-import { Tag, Star, DollarSign, MapPinIcon, Settings, CalendarDays, ShoppingCart, AlertCircle, CheckCircle } from 'lucide-react';
+import { Tag, Star, DollarSign, MapPinIcon, Settings, CalendarDays, ShoppingCart, AlertCircle, CheckCircle, Package as PackageIcon } from 'lucide-react';
 import { useAuth } from '@/contexts/auth-context';
 
 export default function BikeDetailsPage() {
@@ -35,6 +36,8 @@ export default function BikeDetailsPage() {
   const [totalPrice, setTotalPrice] = useState(0);
   const [numberOfDays, setNumberOfDays] = useState(0);
   const [isAvailableForDates, setIsAvailableForDates] = useState<boolean | null>(null);
+  const [quantityAvailableForDates, setQuantityAvailableForDates] = useState(0);
+  const [desiredQuantity, setDesiredQuantity] = useState(1);
 
   useEffect(() => {
     if (params.id) {
@@ -43,45 +46,74 @@ export default function BikeDetailsPage() {
     }
   }, [params.id]);
 
-  useEffect(() => {
-    if (bike && dateRange?.from && dateRange?.to) {
-      const days = differenceInDays(dateRange.to, dateRange.from) + 1;
-      setNumberOfDays(days > 0 ? days : 0);
-      const optionsPrice = selectedOptions.reduce((sum, opt) => opt.selected ? sum + opt.price : sum, 0);
-      setTotalPrice(days > 0 ? (bike.pricePerDay * days) + (optionsPrice * days) : 0);
-    } else {
-      setTotalPrice(0);
-      setNumberOfDays(0);
-    }
-  }, [bike, dateRange, selectedOptions]);
-
+  // Calculate quantity available for dates
   useEffect(() => {
     if (!bike || !dateRange?.from || !dateRange?.to) {
-      setIsAvailableForDates(null); // Not enough info to check
+      setIsAvailableForDates(null);
+      setQuantityAvailableForDates(0);
       return;
     }
 
-    if (!bike.isAvailable) { // General availability check first
+    if (!bike.isAvailable) { // General bike model availability
       setIsAvailableForDates(false);
+      setQuantityAvailableForDates(0);
       return;
     }
 
     const selectedStartTime = dateRange.from.getTime();
     const selectedEndTime = dateRange.to.getTime();
+    let rentedCountDuringPeriod = 0;
 
-    const hasOverlappingRental = MOCK_RENTALS.some(rental => {
+    MOCK_RENTALS.forEach(rental => {
+      // Assuming each rental in MOCK_RENTALS is for one bike of this type
       if (rental.bikeId === bike.id && (rental.status === 'Active' || rental.status === 'Upcoming')) {
         const rentalStartTime = new Date(rental.startDate).getTime();
         const rentalEndTime = new Date(rental.endDate).getTime();
-        // Check for overlap: (StartA <= EndB) and (EndA >= StartB)
-        return selectedStartTime <= rentalEndTime && selectedEndTime >= rentalStartTime;
+        if (selectedStartTime <= rentalEndTime && selectedEndTime >= rentalStartTime) {
+          rentedCountDuringPeriod++;
+        }
       }
-      return false;
     });
 
-    setIsAvailableForDates(!hasOverlappingRental);
+    const calculatedQuantityAvailable = bike.amount - rentedCountDuringPeriod;
+    setQuantityAvailableForDates(Math.max(0, calculatedQuantityAvailable));
+    setIsAvailableForDates(calculatedQuantityAvailable > 0);
 
-  }, [bike, dateRange]); // MOCK_RENTALS is stable, not needed in deps for this mock
+  }, [bike, dateRange]); // MOCK_RENTALS is stable
+
+  // Adjust desiredQuantity if quantityAvailableForDates changes
+   useEffect(() => {
+    if (quantityAvailableForDates === 0) {
+      setDesiredQuantity(0);
+    } else if (desiredQuantity > quantityAvailableForDates) {
+      setDesiredQuantity(quantityAvailableForDates);
+    } else if (desiredQuantity <= 0 && quantityAvailableForDates > 0) {
+      setDesiredQuantity(1);
+    }
+  }, [quantityAvailableForDates]);
+
+
+  // Calculate total price
+  useEffect(() => {
+    if (bike && dateRange?.from && dateRange?.to && desiredQuantity > 0 && numberOfDays > 0) {
+      const baseBikeCost = bike.pricePerDay * numberOfDays * desiredQuantity;
+      const optionsCostPerDay = selectedOptions.reduce((sum, opt) => opt.selected ? sum + opt.price : sum, 0);
+      const totalOptionsCost = optionsCostPerDay * numberOfDays;
+      setTotalPrice(baseBikeCost + totalOptionsCost);
+    } else {
+      setTotalPrice(0);
+    }
+  }, [bike, dateRange, selectedOptions, desiredQuantity, numberOfDays]);
+
+  // Calculate number of days
+  useEffect(() => {
+    if (dateRange?.from && dateRange?.to) {
+        const days = differenceInDays(dateRange.to, dateRange.from) + 1;
+        setNumberOfDays(days > 0 ? days : 0);
+    } else {
+        setNumberOfDays(0);
+    }
+  }, [dateRange]);
 
 
   const handleOptionChange = (optionId: string) => {
@@ -90,6 +122,21 @@ export default function BikeDetailsPage() {
         opt.id === optionId ? { ...opt, selected: !opt.selected } : opt
       )
     );
+  };
+
+  const handleDesiredQuantityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let newQuantity = parseInt(e.target.value, 10);
+    if (isNaN(newQuantity)) {
+      newQuantity = 0; // Or 1 if you don't want 0
+    }
+    if (newQuantity < 0) newQuantity = 0; // Or 1
+    if (quantityAvailableForDates > 0 && newQuantity > quantityAvailableForDates) {
+      newQuantity = quantityAvailableForDates;
+    }
+     if (quantityAvailableForDates === 0 && newQuantity > 0) {
+        newQuantity = 0;
+    }
+    setDesiredQuantity(newQuantity);
   };
 
   const handleRentNow = () => {
@@ -103,10 +150,10 @@ export default function BikeDetailsPage() {
       return;
     }
 
-    if (!bike || !dateRange?.from || !dateRange?.to || numberOfDays <= 0 || isAvailableForDates !== true) {
+    if (!bike || !dateRange?.from || !dateRange?.to || numberOfDays <= 0 || !isAvailableForDates || desiredQuantity <= 0 || desiredQuantity > quantityAvailableForDates) {
       toast({
         title: "Rental Not Possible",
-        description: "Please select a valid date range for an available bike.",
+        description: "Please select a valid date range, ensure bike availability, and set a valid quantity.",
         variant: "destructive",
       });
       return;
@@ -119,6 +166,7 @@ export default function BikeDetailsPage() {
       options: selectedOptions.filter(opt => opt.selected),
       totalPrice,
       numDays: numberOfDays,
+      quantityRented: desiredQuantity,
     };
     localStorage.setItem('currentOrder', JSON.stringify(orderDetails));
     router.push('/checkout');
@@ -135,16 +183,15 @@ export default function BikeDetailsPage() {
     );
   }
 
-  const canRent = bike.isAvailable && numberOfDays > 0 && isAvailableForDates === true;
+  const canRent = bike.isAvailable && numberOfDays > 0 && isAvailableForDates === true && desiredQuantity > 0 && desiredQuantity <= quantityAvailableForDates;
 
   return (
       <div className="grid md:grid-cols-2 gap-8 lg:gap-12 items-start">
-        {/* Left Column: Image and Basic Info */}
         <Card className="shadow-xl">
           <CardHeader className="p-0">
             <div className="aspect-video relative w-full rounded-t-lg overflow-hidden">
               <Image
-                src={bike.imageUrl.split('"')[0]} // Handle potential data-ai-hint in URL
+                src={bike.imageUrl.split('"')[0]} 
                 alt={bike.name}
                 layout="fill"
                 objectFit="cover"
@@ -180,23 +227,22 @@ export default function BikeDetailsPage() {
                 <li key={index}>{feature}</li>
               ))}
             </ul>
-             {!bike.isAvailable && ( // General availability
+             {!bike.isAvailable && ( 
               <Alert variant="destructive" className="mt-4">
                 <AlertCircle className="h-4 w-4" />
                 <AlertTitle>Currently Unavailable</AlertTitle>
                 <AlertDescription>
-                  This motorbike is not available for rent at the moment.
+                  This motorbike model is not available for rent at the moment.
                 </AlertDescription>
               </Alert>
             )}
           </CardContent>
         </Card>
 
-        {/* Right Column: Rental Options */}
         <Card className="shadow-xl sticky top-24">
           <CardHeader>
             <CardTitle className="text-2xl font-bold flex items-center"><CalendarDays className="w-6 h-6 mr-2 text-primary" />Rental Options</CardTitle>
-            <CardDescription>Select your rental period and additional options.</CardDescription>
+            <CardDescription>Select your rental period, quantity, and additional options.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             <div>
@@ -217,23 +263,41 @@ export default function BikeDetailsPage() {
               )}
             </div>
             
-            {/* Availability Status Alert */}
             {isAvailableForDates !== null && dateRange?.from && dateRange?.to && (
-              <Alert variant={isAvailableForDates ? "default" : "destructive"} className="mb-0"> {/* Removed mb-6, use space-y-6 of parent */}
+              <Alert variant={isAvailableForDates ? "default" : "destructive"} className="mb-0">
                 {isAvailableForDates ? <CheckCircle className="h-4 w-4 text-green-500" /> : <AlertCircle className="h-4 w-4" />}
                 <AlertTitle>
                   {isAvailableForDates ? "Bike Availability" : "Bike Not Available"}
                 </AlertTitle>
                 <AlertDescription>
                   {isAvailableForDates
-                    ? "This motorbike is available for your selected dates."
-                    : "This motorbike is not available for the selected period. Please choose different dates or another bike."}
+                    ? `${quantityAvailableForDates} unit(s) of this motorbike ${quantityAvailableForDates === 1 ? 'is' : 'are'} available for your selected dates.`
+                    : "This motorbike is not available for the selected period, or not enough units are available. Please choose different dates or another bike."}
                 </AlertDescription>
               </Alert>
             )}
 
             <div>
-              <h3 className="text-base font-medium mb-3 mt-4">Additional Options</h3> {/* Added mt-4 for spacing */}
+              <Label htmlFor="quantity" className="text-base font-medium mb-2 block flex items-center">
+                <PackageIcon className="w-5 h-5 mr-2 text-primary" /> Quantity
+              </Label>
+              <Input
+                type="number"
+                id="quantity"
+                value={desiredQuantity}
+                onChange={handleDesiredQuantityChange}
+                min={quantityAvailableForDates > 0 ? 1 : 0}
+                max={quantityAvailableForDates}
+                className="w-full"
+                disabled={!isAvailableForDates || quantityAvailableForDates === 0}
+              />
+              {isAvailableForDates && quantityAvailableForDates > 0 && (
+                 <p className="text-xs text-muted-foreground mt-1">Max available: {quantityAvailableForDates}</p>
+              )}
+            </div>
+
+            <div>
+              <h3 className="text-base font-medium mb-3 mt-4">Additional Options</h3>
               <div className="space-y-3">
                 {selectedOptions.map(option => (
                   <div key={option.id} className="flex items-center space-x-3 p-3 border rounded-md hover:bg-muted/50 transition-colors">
@@ -241,7 +305,7 @@ export default function BikeDetailsPage() {
                       id={option.id}
                       checked={option.selected}
                       onCheckedChange={() => handleOptionChange(option.id)}
-                      disabled={!bike.isAvailable} // General availability for options
+                      disabled={!bike.isAvailable || !isAvailableForDates}
                     />
                     <Label htmlFor={option.id} className="flex-grow text-sm font-normal cursor-pointer">
                       {option.name}
@@ -259,7 +323,7 @@ export default function BikeDetailsPage() {
               <span className="text-primary">${totalPrice.toFixed(2)}</span>
             </div>
              <p className="text-sm text-muted-foreground text-right">
-              ${bike.pricePerDay}/day for the bike + options
+              Bike(s): ${bike.pricePerDay}/day/unit. Options priced per day for the rental period.
             </p>
             <Button
               size="lg"
@@ -268,7 +332,10 @@ export default function BikeDetailsPage() {
               disabled={!canRent}
             >
               <ShoppingCart className="w-5 h-5 mr-2" />
-              {canRent ? 'Rent Now & Proceed to Checkout' : (bike.isAvailable ? 'Check Dates' : 'Unavailable')}
+              {canRent ? 'Rent Now & Proceed to Checkout' : 
+                (!isAvailableForDates ? 'Unavailable for Dates' : 
+                 desiredQuantity <= 0 ? 'Select Quantity' : 
+                 desiredQuantity > quantityAvailableForDates ? 'Quantity Exceeds Stock' : 'Check Details')}
             </Button>
           </CardFooter>
         </Card>

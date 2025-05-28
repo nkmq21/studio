@@ -20,7 +20,7 @@ export interface Bike {
   location: string; 
   rating?: number; // Optional: 1-5 stars
   isAvailable?: boolean; // Simplified availability
-  amount: number; // Added amount field
+  amount: number; // Total stock of this bike model
   cylinderVolume?: number; // Optional: in cc
 }
 
@@ -37,6 +37,7 @@ export interface Rental {
   bikeName: string; 
   bikeImageUrl: string;
   orderDate: Date;
+  // quantity?: number; // Future: if a single rental record can be for multiple bikes
 }
 
 export interface OrderDetails {
@@ -46,6 +47,7 @@ export interface OrderDetails {
   options: { id: string, name: string, price: number, selected: boolean }[];
   totalPrice: number;
   numDays: number;
+  quantityRented: number; // Added quantity
 }
 
 export interface ChatMessage {
