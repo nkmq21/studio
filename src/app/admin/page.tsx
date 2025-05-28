@@ -28,7 +28,7 @@ export default function AdminOverviewPage() {
               Manage all motorbikes available for rent. Update details, availability, and pricing.
             </p>
             <div className="flex justify-center">
-              <Button asChild variant="outline">
+              <Button asChild variant="outline" className="w-full">
                 <Link href="/admin/fleet">Go to Fleet Management <ArrowRight className="ml-2 h-4 w-4" /></Link>
               </Button>
             </div>
@@ -45,7 +45,7 @@ export default function AdminOverviewPage() {
               See which bikes are on the road, who rented them, and when they are due back.
             </p>
             <div className="flex justify-center">
-              <Button asChild variant="outline">
+              <Button asChild variant="outline" className="w-full">
                 <Link href="/admin/rentals/active">View Active Rentals <ArrowRight className="ml-2 h-4 w-4" /></Link>
               </Button>
             </div>
@@ -62,7 +62,7 @@ export default function AdminOverviewPage() {
               Stay ahead by viewing scheduled pickups and ensuring bike availability.
             </p>
             <div className="flex justify-center">
-              <Button asChild variant="outline">
+              <Button asChild variant="outline" className="w-full">
                 <Link href="/admin/rentals/upcoming">View Upcoming Rentals <ArrowRight className="ml-2 h-4 w-4" /></Link>
               </Button>
             </div>
