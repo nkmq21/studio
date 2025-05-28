@@ -11,6 +11,8 @@ export interface User {
   feedbackCount?: number; // Added for user management
   dateOfBirth?: string; // For profile page
   address?: string; // For profile page
+  credentialIdNumber?: string; // For credential ID
+  credentialIdImageUrl?: string; // For credential ID image (Data URI)
 }
 
 export interface Bike {

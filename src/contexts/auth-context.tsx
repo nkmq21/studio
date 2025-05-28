@@ -6,12 +6,17 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { MOCK_USERS } from '@/lib/mock-data';
 import { useRouter } from 'next/navigation';
 
+interface CredentialsToUpdate {
+  credentialIdNumber?: string;
+  credentialIdImageUrl?: string;
+}
 interface AuthContextType {
   user: User | null;
   login: (email: string, pass: string) => Promise<boolean>; // Pass is unused for mock
   signup: (name: string, email: string, pass: string, role: UserRole) => Promise<boolean>; // Pass is unused
   logout: () => void;
   loginWithGoogle: () => Promise<boolean>;
+  updateUserCredentials: (credentials: CredentialsToUpdate) => Promise<boolean>;
   loading: boolean;
   isAuthenticated: boolean;
 }
@@ -27,7 +32,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     // Simulate checking for an existing session
     const storedUser = localStorage.getItem('motoRentUser');
     if (storedUser) {
-      setUser(JSON.parse(storedUser));
+      try {
+        setUser(JSON.parse(storedUser));
+      } catch (e) {
+        console.error("Error parsing stored user:", e);
+        localStorage.removeItem('motoRentUser');
+      }
     }
     setLoading(false);
   }, []);
@@ -36,10 +46,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setLoading(true);
     // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 500));
-    const foundUser = MOCK_USERS.find(u => u.email === email);
+    const foundUser = MOCK_USERS.find(u => u.email === email); // In a real app, MOCK_USERS would be a database
     if (foundUser) {
-      setUser(foundUser);
-      localStorage.setItem('motoRentUser', JSON.stringify(foundUser));
+      const userToStore = { ...foundUser, lastLogin: new Date() }; // Update lastLogin on login
+      setUser(userToStore);
+      localStorage.setItem('motoRentUser', JSON.stringify(userToStore));
       setLoading(false);
       return true;
     }
@@ -49,14 +60,40 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signup = async (name: string, email: string, _pass: string, role: UserRole) => {
     setLoading(true);
-    // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 500));
-    if (MOCK_USERS.find(u => u.email === email)) {
+    
+    // Check if user exists in MOCK_USERS (simulating database check)
+    // This is a simplified check; a real app would query a DB.
+    let existingUser = MOCK_USERS.find(u => u.email === email);
+    if (!existingUser) {
+        // Also check localStorage in case user signed up but isn't in MOCK_USERS (edge case for mock)
+        const storedUserString = localStorage.getItem('motoRentUser');
+        if (storedUserString) {
+            try {
+                const storedUser = JSON.parse(storedUserString);
+                if (storedUser.email === email) {
+                    existingUser = storedUser;
+                }
+            } catch (e) { /* ignore parsing error */ }
+        }
+    }
+
+    if (existingUser) {
       setLoading(false);
       return false; // User already exists
     }
-    const newUser: User = { id: `user${Date.now()}`, name, email, role, avatarUrl: 'https://placehold.co/100x100.png' };
-    // MOCK_USERS.push(newUser); // In a real app, this would be an API call
+
+    const newUser: User = { 
+        id: `user${Date.now()}`, 
+        name, 
+        email, 
+        role, 
+        avatarUrl: 'https://placehold.co/100x100.png',
+        lastLogin: new Date(),
+        credentialIdNumber: undefined,
+        credentialIdImageUrl: undefined,
+    };
+    // In a real app, this would be an API call that also updates MOCK_USERS or DB
     setUser(newUser);
     localStorage.setItem('motoRentUser', JSON.stringify(newUser));
     setLoading(false);
@@ -65,19 +102,37 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const loginWithGoogle = async () => {
     setLoading(true);
-    // Simulate API call & Google auth
     await new Promise(resolve => setTimeout(resolve, 500));
-    const googleUser: User = { 
-      id: 'user-google', 
+    const googleUserEmail = 'google.user@vroomvroom.vn'; // Changed domain
+    
+    // Check if this Google user exists in MOCK_USERS or localStorage
+    let foundUser = MOCK_USERS.find(u => u.email === googleUserEmail);
+    if (!foundUser) {
+        const storedUserString = localStorage.getItem('motoRentUser');
+        if (storedUserString) {
+            try {
+                const storedUser = JSON.parse(storedUserString);
+                if (storedUser.email === googleUserEmail) {
+                    foundUser = storedUser;
+                }
+            } catch (e) { /* ignore */ }
+        }
+    }
+
+    const userToLogin: User = foundUser || { 
+      id: `user-google-${Date.now()}`, 
       name: 'Google User', 
-      email: 'google.user@motorent.com', 
+      email: googleUserEmail, 
       role: 'renter', 
-      avatarUrl: 'https://placehold.co/100x100.png' 
+      avatarUrl: 'https://placehold.co/100x100.png',
+      credentialIdNumber: undefined,
+      credentialIdImageUrl: undefined,
     };
-    // You might want to check if this user exists in MOCK_USERS or add them,
-    // but for this mock, we'll just set this user directly.
-    setUser(googleUser);
-    localStorage.setItem('motoRentUser', JSON.stringify(googleUser));
+    
+    userToLogin.lastLogin = new Date(); // Update lastLogin
+
+    setUser(userToLogin);
+    localStorage.setItem('motoRentUser', JSON.stringify(userToLogin));
     setLoading(false);
     return true;
   };
@@ -85,11 +140,32 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const logout = () => {
     setUser(null);
     localStorage.removeItem('motoRentUser');
-    router.push('/auth/login');
+    router.push('/auth/login'); // Ensure redirect to login after logout
+  };
+
+  const updateUserCredentials = async (credentials: CredentialsToUpdate) => {
+    if (!user) return false;
+    setLoading(true);
+    await new Promise(resolve => setTimeout(resolve, 300)); // Simulate API call
+    const updatedUser = { 
+      ...user, 
+      ...credentials 
+    };
+    setUser(updatedUser);
+    localStorage.setItem('motoRentUser', JSON.stringify(updatedUser));
+
+    // Also update in MOCK_USERS if the user exists there (for consistency in admin views etc.)
+    const userIndex = MOCK_USERS.findIndex(u => u.id === user.id);
+    if (userIndex > -1) {
+      MOCK_USERS[userIndex] = { ...MOCK_USERS[userIndex], ...credentials };
+    }
+    
+    setLoading(false);
+    return true;
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, signup, logout, loginWithGoogle, loading, isAuthenticated: !!user }}>
+    <AuthContext.Provider value={{ user, login, signup, logout, loginWithGoogle, updateUserCredentials, loading, isAuthenticated: !!user }}>
       {children}
     </AuthContext.Provider>
   );

@@ -13,6 +13,8 @@ export const MOCK_USERS: User[] = [
     feedbackCount: 3,
     dateOfBirth: '1990-05-15',
     address: '123 Main St, Wonderland',
+    credentialIdNumber: 'CW1234567',
+    credentialIdImageUrl: undefined, // Or a placeholder data URI if you have one
   },
   {
     id: 'user2',
@@ -24,6 +26,8 @@ export const MOCK_USERS: User[] = [
     feedbackCount: 0,
     dateOfBirth: '1985-10-20',
     address: '456 Tool Ave, Build City',
+    credentialIdNumber: undefined,
+    credentialIdImageUrl: undefined,
   },
   {
     id: 'user3',
@@ -35,6 +39,8 @@ export const MOCK_USERS: User[] = [
     feedbackCount: 1,
     dateOfBirth: '1995-02-10',
     address: '789 Comic Strip, Peanuts Town',
+    credentialIdNumber: undefined,
+    credentialIdImageUrl: undefined,
   },
   {
     id: 'user4',
@@ -46,6 +52,8 @@ export const MOCK_USERS: User[] = [
     feedbackCount: 0,
     dateOfBirth: '1980-03-22',
     address: '1 Justice Way, Themyscira',
+    credentialIdNumber: 'AMZ987654',
+    credentialIdImageUrl: undefined,
   },
 ];
 
