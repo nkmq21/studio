@@ -4,9 +4,8 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { MOCK_BIKES, RENTAL_OPTIONS } from '@/lib/mock-data';
+import { MOCK_BIKES, MOCK_RENTALS, RENTAL_OPTIONS } from '@/lib/mock-data';
 import type { Bike, OrderDetails } from '@/lib/types';
-// import MainLayout from '@/components/layout/main-layout'; // Removed
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -15,9 +14,9 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useToast } from '@/hooks/use-toast';
-import { DateRange } from 'react-day-picker';
+import type { DateRange } from 'react-day-picker';
 import { addDays, differenceInDays, format } from 'date-fns';
-import { Tag, Star, DollarSign, MapPinIcon, Settings, CalendarDays, ShoppingCart, AlertCircle } from 'lucide-react';
+import { Tag, Star, DollarSign, MapPinIcon, Settings, CalendarDays, ShoppingCart, AlertCircle, CheckCircle } from 'lucide-react';
 import { useAuth } from '@/contexts/auth-context';
 
 export default function BikeDetailsPage() {
@@ -35,6 +34,7 @@ export default function BikeDetailsPage() {
   );
   const [totalPrice, setTotalPrice] = useState(0);
   const [numberOfDays, setNumberOfDays] = useState(0);
+  const [isAvailableForDates, setIsAvailableForDates] = useState<boolean | null>(null);
 
   useEffect(() => {
     if (params.id) {
@@ -55,6 +55,35 @@ export default function BikeDetailsPage() {
     }
   }, [bike, dateRange, selectedOptions]);
 
+  useEffect(() => {
+    if (!bike || !dateRange?.from || !dateRange?.to) {
+      setIsAvailableForDates(null); // Not enough info to check
+      return;
+    }
+
+    if (!bike.isAvailable) { // General availability check first
+      setIsAvailableForDates(false);
+      return;
+    }
+
+    const selectedStartTime = dateRange.from.getTime();
+    const selectedEndTime = dateRange.to.getTime();
+
+    const hasOverlappingRental = MOCK_RENTALS.some(rental => {
+      if (rental.bikeId === bike.id && (rental.status === 'Active' || rental.status === 'Upcoming')) {
+        const rentalStartTime = new Date(rental.startDate).getTime();
+        const rentalEndTime = new Date(rental.endDate).getTime();
+        // Check for overlap: (StartA <= EndB) and (EndA >= StartB)
+        return selectedStartTime <= rentalEndTime && selectedEndTime >= rentalStartTime;
+      }
+      return false;
+    });
+
+    setIsAvailableForDates(!hasOverlappingRental);
+
+  }, [bike, dateRange]); // MOCK_RENTALS is stable, not needed in deps for this mock
+
+
   const handleOptionChange = (optionId: string) => {
     setSelectedOptions(prevOptions =>
       prevOptions.map(opt =>
@@ -70,14 +99,14 @@ export default function BikeDetailsPage() {
         description: "Please log in to rent a motorbike.",
         variant: "destructive",
       });
-      router.push('/auth/login');
+      router.push('/auth/login?redirect=' + encodeURIComponent(window.location.pathname));
       return;
     }
 
-    if (!bike || !dateRange?.from || !dateRange?.to || numberOfDays <= 0) {
+    if (!bike || !dateRange?.from || !dateRange?.to || numberOfDays <= 0 || isAvailableForDates !== true) {
       toast({
-        title: "Invalid Rental Details",
-        description: "Please select a valid date range.",
+        title: "Rental Not Possible",
+        description: "Please select a valid date range for an available bike.",
         variant: "destructive",
       });
       return;
@@ -105,6 +134,8 @@ export default function BikeDetailsPage() {
         </div>
     );
   }
+
+  const canRent = bike.isAvailable && numberOfDays > 0 && isAvailableForDates === true;
 
   return (
       <div className="grid md:grid-cols-2 gap-8 lg:gap-12 items-start">
@@ -149,7 +180,7 @@ export default function BikeDetailsPage() {
                 <li key={index}>{feature}</li>
               ))}
             </ul>
-             {!bike.isAvailable && (
+             {!bike.isAvailable && ( // General availability
               <Alert variant="destructive" className="mt-4">
                 <AlertCircle className="h-4 w-4" />
                 <AlertTitle>Currently Unavailable</AlertTitle>
@@ -162,7 +193,7 @@ export default function BikeDetailsPage() {
         </Card>
 
         {/* Right Column: Rental Options */}
-        <Card className="shadow-xl sticky top-24"> {/* Added sticky for better UX on scroll */}
+        <Card className="shadow-xl sticky top-24">
           <CardHeader>
             <CardTitle className="text-2xl font-bold flex items-center"><CalendarDays className="w-6 h-6 mr-2 text-primary" />Rental Options</CardTitle>
             <CardDescription>Select your rental period and additional options.</CardDescription>
@@ -185,9 +216,24 @@ export default function BikeDetailsPage() {
                 </p>
               )}
             </div>
+            
+            {/* Availability Status Alert */}
+            {isAvailableForDates !== null && dateRange?.from && dateRange?.to && (
+              <Alert variant={isAvailableForDates ? "default" : "destructive"} className="mb-0"> {/* Removed mb-6, use space-y-6 of parent */}
+                {isAvailableForDates ? <CheckCircle className="h-4 w-4 text-green-500" /> : <AlertCircle className="h-4 w-4" />}
+                <AlertTitle>
+                  {isAvailableForDates ? "Bike Availability" : "Bike Not Available"}
+                </AlertTitle>
+                <AlertDescription>
+                  {isAvailableForDates
+                    ? "This motorbike is available for your selected dates."
+                    : "This motorbike is not available for the selected period. Please choose different dates or another bike."}
+                </AlertDescription>
+              </Alert>
+            )}
 
             <div>
-              <h3 className="text-base font-medium mb-3">Additional Options</h3>
+              <h3 className="text-base font-medium mb-3 mt-4">Additional Options</h3> {/* Added mt-4 for spacing */}
               <div className="space-y-3">
                 {selectedOptions.map(option => (
                   <div key={option.id} className="flex items-center space-x-3 p-3 border rounded-md hover:bg-muted/50 transition-colors">
@@ -195,7 +241,7 @@ export default function BikeDetailsPage() {
                       id={option.id}
                       checked={option.selected}
                       onCheckedChange={() => handleOptionChange(option.id)}
-                      disabled={!bike.isAvailable}
+                      disabled={!bike.isAvailable} // General availability for options
                     />
                     <Label htmlFor={option.id} className="flex-grow text-sm font-normal cursor-pointer">
                       {option.name}
@@ -219,10 +265,10 @@ export default function BikeDetailsPage() {
               size="lg"
               className="w-full"
               onClick={handleRentNow}
-              disabled={!bike.isAvailable || numberOfDays <= 0}
+              disabled={!canRent}
             >
               <ShoppingCart className="w-5 h-5 mr-2" />
-              {bike.isAvailable ? 'Rent Now & Proceed to Checkout' : 'Unavailable'}
+              {canRent ? 'Rent Now & Proceed to Checkout' : (bike.isAvailable ? 'Check Dates' : 'Unavailable')}
             </Button>
           </CardFooter>
         </Card>
