@@ -82,7 +82,7 @@ export default function Header({ toggleChatWidget }: HeaderProps) {
                     </Link>
                   </DropdownMenuItem>
                 )}
-                 {(user?.role === 'staff' || user?.role === 'admin') && (
+                 {user?.role === 'staff' && (
                   <DropdownMenuItem asChild>
                     <Link href="/staff" className="flex items-center">
                       <LayoutDashboard className="mr-2 h-4 w-4" />
