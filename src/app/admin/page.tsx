@@ -13,7 +13,7 @@ export default function AdminOverviewPage() {
       description: "View, add, edit, or remove bikes from the catalog.",
       details: "Manage all motorbikes available for rent. Update details, availability, and pricing.",
       href: "/admin/fleet",
-      linkText: "Go to Fleet Management",
+      linkText: "Fleet Management", // Updated
       icon: BikeIcon,
     },
     {
@@ -21,7 +21,7 @@ export default function AdminOverviewPage() {
       description: "Monitor bikes currently rented out to customers.",
       details: "See which bikes are on the road, who rented them, and when they are due back.",
       href: "/admin/rentals/active",
-      linkText: "View Active Rentals",
+      linkText: "Active Rentals", // Updated
       icon: ListChecks,
     },
     {
@@ -29,7 +29,7 @@ export default function AdminOverviewPage() {
       description: "Track future rental bookings and prepare accordingly.",
       details: "Stay ahead by viewing scheduled pickups and ensuring bike availability.",
       href: "/admin/rentals/upcoming",
-      linkText: "View Upcoming Rentals",
+      linkText: "Upcoming Rentals", // Updated
       icon: CalendarClock,
     },
     {
@@ -37,7 +37,7 @@ export default function AdminOverviewPage() {
       description: "Manage user accounts, roles, and permissions.",
       details: "View all registered users, modify their roles, or remove accounts as needed.",
       href: "/admin/users",
-      linkText: "Go to User Management",
+      linkText: "User Management", // Updated
       icon: UsersIconLucide,
     },
   ];
