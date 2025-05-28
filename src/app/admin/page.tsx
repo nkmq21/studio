@@ -1,13 +1,47 @@
 
 "use client";
 
-import { ShieldAlert, Users as UsersIconLucide } from 'lucide-react'; // Added UsersIconLucide
+import { ShieldAlert, Users as UsersIconLucide, ArrowRight, Bike as BikeIcon, ListChecks, CalendarClock, LayoutDashboard } from 'lucide-react'; // Added LayoutDashboard, BikeIcon
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { ArrowRight } from 'lucide-react';
 
 export default function AdminOverviewPage() {
+  const cardItems = [
+    {
+      title: "Bike Fleet",
+      description: "View, add, edit, or remove bikes from the catalog.",
+      details: "Manage all motorbikes available for rent. Update details, availability, and pricing.",
+      href: "/admin/fleet",
+      linkText: "Go to Fleet Management",
+      icon: BikeIcon, // Using BikeIcon from lucide
+    },
+    {
+      title: "Active Rentals",
+      description: "Monitor bikes currently rented out to customers.",
+      details: "See which bikes are on the road, who rented them, and when they are due back.",
+      href: "/admin/rentals/active",
+      linkText: "View Active Rentals",
+      icon: ListChecks,
+    },
+    {
+      title: "Upcoming Rentals",
+      description: "Track future rental bookings and prepare accordingly.",
+      details: "Stay ahead by viewing scheduled pickups and ensuring bike availability.",
+      href: "/admin/rentals/upcoming",
+      linkText: "View Upcoming Rentals",
+      icon: CalendarClock,
+    },
+    {
+      title: "User Management",
+      description: "Manage user accounts, roles, and permissions.",
+      details: "View all registered users, modify their roles, or remove accounts as needed.",
+      href: "/admin/users",
+      linkText: "Go to User Management",
+      icon: UsersIconLucide, // Using UsersIconLucide from lucide
+    },
+  ];
+
   return (
     <div className="space-y-8">
       <div className="mb-8 p-6 bg-card rounded-lg shadow-md">
@@ -18,74 +52,36 @@ export default function AdminOverviewPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <Card className="hover:shadow-lg transition-shadow">
-          <CardHeader>
-            <CardTitle>Bike Fleet</CardTitle>
-            <CardDescription>View, add, edit, or remove bikes from the catalog.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground mb-4">
-              Manage all motorbikes available for rent. Update details, availability, and pricing.
-            </p>
-            <div className="flex justify-center">
-              <Button asChild variant="outline" className="w-full">
-                <Link href="/admin/fleet">Go to Fleet Management <ArrowRight className="h-4 w-4" /></Link>
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="hover:shadow-lg transition-shadow">
-          <CardHeader>
-            <CardTitle>Active Rentals</CardTitle>
-            <CardDescription>Monitor bikes currently rented out to customers.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground mb-4">
-              See which bikes are on the road, who rented them, and when they are due back.
-            </p>
-            <div className="flex justify-center">
-              <Button asChild variant="outline" className="w-full">
-                <Link href="/admin/rentals/active">View Active Rentals <ArrowRight className="h-4 w-4" /></Link>
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="hover:shadow-lg transition-shadow">
-          <CardHeader>
-            <CardTitle>Upcoming Rentals</CardTitle>
-            <CardDescription>Track future rental bookings and prepare accordingly.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground mb-4">
-              Stay ahead by viewing scheduled pickups and ensuring bike availability.
-            </p>
-            <div className="flex justify-center">
-              <Button asChild variant="outline" className="w-full">
-                <Link href="/admin/rentals/upcoming">View Upcoming Rentals <ArrowRight className="h-4 w-4" /></Link>
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="hover:shadow-lg transition-shadow">
-          <CardHeader>
-            <CardTitle>User Management</CardTitle>
-            <CardDescription>Manage user accounts, roles, and permissions.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground mb-4">
-              View all registered users, modify their roles, or remove accounts as needed.
-            </p>
-            <div className="flex justify-center">
-              <Button asChild variant="outline" className="w-full">
-                <Link href="/admin/users">Go to User Management <UsersIconLucide className="h-4 w-4" /></Link>
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+        {cardItems.map((item) => {
+          const IconComponent = item.icon; // Renamed Icon to IconComponent to avoid conflict
+          return (
+            <Card key={item.title} className="hover:shadow-lg transition-shadow flex flex-col">
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <IconComponent className="w-5 h-5 mr-2 text-primary" /> {/* Dynamically render the icon */}
+                  {item.title}
+                </CardTitle>
+                <CardDescription>{item.description}</CardDescription>
+              </CardHeader>
+              <CardContent className="flex flex-col flex-grow p-6 pt-0"> {/* Ensure default padding, add flex-grow */}
+                <p className="text-sm text-muted-foreground mb-4 flex-grow"> {/* Add flex-grow to paragraph */}
+                  {item.details}
+                </p>
+                <div className="mt-auto"> {/* This div will be pushed to the bottom */}
+                  <Button asChild variant="outline" className="w-full">
+                    <Link href={item.href} className="truncate"> {/* Add truncate to Link for text cutoff */}
+                      {item.linkText}
+                      <ArrowRight className="h-4 w-4" /> {/* Icon is spaced by Button's gap property */}
+                    </Link>
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
     </div>
   );
 }
+
+    
