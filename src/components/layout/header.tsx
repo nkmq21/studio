@@ -39,9 +39,9 @@ export default function Header({ toggleChatWidget }: HeaderProps) {
           <Link href="/bikes" className="text-sm font-medium text-foreground/70 hover:text-primary transition-colors px-1 py-1 md:px-2">
             Bikes
           </Link>
-          <Button 
-            variant="ghost" 
-            onClick={toggleChatWidget} 
+          <Button
+            variant="ghost"
+            onClick={toggleChatWidget}
             className="px-1 py-1 md:px-2 text-sm font-medium text-foreground/70 hover:text-primary hover:bg-transparent"
           >
             <MessageSquare className="h-5 w-5 md:mr-1.5"/>
@@ -82,7 +82,7 @@ export default function Header({ toggleChatWidget }: HeaderProps) {
                     </Link>
                   </DropdownMenuItem>
                 )}
-                 {user?.role === 'staff' && (
+                 {(user?.role === 'staff' || user?.role === 'admin') && (
                   <DropdownMenuItem asChild>
                     <Link href="/staff" className="flex items-center">
                       <LayoutDashboard className="mr-2 h-4 w-4" />
