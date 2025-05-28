@@ -27,9 +27,11 @@ export default function AdminOverviewPage() {
             <p className="text-sm text-muted-foreground mb-4">
               Manage all motorbikes available for rent. Update details, availability, and pricing.
             </p>
-            <Button asChild variant="outline">
-              <Link href="/admin/fleet">Go to Fleet Management <ArrowRight className="ml-2 h-4 w-4" /></Link>
-            </Button>
+            <div className="flex justify-center">
+              <Button asChild variant="outline">
+                <Link href="/admin/fleet">Go to Fleet Management <ArrowRight className="ml-2 h-4 w-4" /></Link>
+              </Button>
+            </div>
           </CardContent>
         </Card>
 
@@ -42,9 +44,11 @@ export default function AdminOverviewPage() {
             <p className="text-sm text-muted-foreground mb-4">
               See which bikes are on the road, who rented them, and when they are due back.
             </p>
-            <Button asChild variant="outline">
-              <Link href="/admin/rentals/active">View Active Rentals <ArrowRight className="ml-2 h-4 w-4" /></Link>
-            </Button>
+            <div className="flex justify-center">
+              <Button asChild variant="outline">
+                <Link href="/admin/rentals/active">View Active Rentals <ArrowRight className="ml-2 h-4 w-4" /></Link>
+              </Button>
+            </div>
           </CardContent>
         </Card>
 
@@ -57,9 +61,11 @@ export default function AdminOverviewPage() {
             <p className="text-sm text-muted-foreground mb-4">
               Stay ahead by viewing scheduled pickups and ensuring bike availability.
             </p>
-            <Button asChild variant="outline">
-              <Link href="/admin/rentals/upcoming">View Upcoming Rentals <ArrowRight className="ml-2 h-4 w-4" /></Link>
-            </Button>
+            <div className="flex justify-center">
+              <Button asChild variant="outline">
+                <Link href="/admin/rentals/upcoming">View Upcoming Rentals <ArrowRight className="ml-2 h-4 w-4" /></Link>
+              </Button>
+            </div>
           </CardContent>
         </Card>
       </div>
