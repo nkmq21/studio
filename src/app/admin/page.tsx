@@ -1,7 +1,7 @@
 
 "use client";
 
-import { ShieldAlert, Users as UsersIconLucide, ArrowRight, Bike as BikeIcon, ListChecks, CalendarClock, LayoutDashboard } from 'lucide-react'; // Added LayoutDashboard, BikeIcon
+import { ShieldAlert, Users as UsersIconLucide, ArrowRight, Bike as BikeIcon, ListChecks, CalendarClock, LayoutDashboard } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -9,12 +9,12 @@ import { Button } from '@/components/ui/button';
 export default function AdminOverviewPage() {
   const cardItems = [
     {
-      title: "Bike Fleet",
+      title: "Fleet Management",
       description: "View, add, edit, or remove bikes from the catalog.",
       details: "Manage all motorbikes available for rent. Update details, availability, and pricing.",
       href: "/admin/fleet",
       linkText: "Go to Fleet Management",
-      icon: BikeIcon, // Using BikeIcon from lucide
+      icon: BikeIcon,
     },
     {
       title: "Active Rentals",
@@ -38,7 +38,7 @@ export default function AdminOverviewPage() {
       details: "View all registered users, modify their roles, or remove accounts as needed.",
       href: "/admin/users",
       linkText: "Go to User Management",
-      icon: UsersIconLucide, // Using UsersIconLucide from lucide
+      icon: UsersIconLucide,
     },
   ];
 
@@ -53,25 +53,25 @@ export default function AdminOverviewPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {cardItems.map((item) => {
-          const IconComponent = item.icon; // Renamed Icon to IconComponent to avoid conflict
+          const IconComponent = item.icon;
           return (
             <Card key={item.title} className="hover:shadow-lg transition-shadow flex flex-col">
               <CardHeader>
                 <CardTitle className="flex items-center">
-                  <IconComponent className="w-5 h-5 mr-2 text-primary" /> {/* Dynamically render the icon */}
+                  <IconComponent className="w-5 h-5 mr-2 text-primary" />
                   {item.title}
                 </CardTitle>
                 <CardDescription>{item.description}</CardDescription>
               </CardHeader>
-              <CardContent className="flex flex-col flex-grow p-6 pt-0"> {/* Ensure default padding, add flex-grow */}
-                <p className="text-sm text-muted-foreground mb-4 flex-grow"> {/* Add flex-grow to paragraph */}
+              <CardContent className="flex flex-col flex-grow p-6 pt-0">
+                <p className="text-sm text-muted-foreground mb-4 flex-grow">
                   {item.details}
                 </p>
-                <div className="mt-auto"> {/* This div will be pushed to the bottom */}
+                <div className="mt-auto">
                   <Button asChild variant="outline" className="w-full">
-                    <Link href={item.href} className="truncate"> {/* Add truncate to Link for text cutoff */}
+                    <Link href={item.href} className="truncate">
                       {item.linkText}
-                      <ArrowRight className="h-4 w-4" /> {/* Icon is spaced by Button's gap property */}
+                      <ArrowRight className="h-4 w-4" />
                     </Link>
                   </Button>
                 </div>
@@ -83,5 +83,3 @@ export default function AdminOverviewPage() {
     </div>
   );
 }
-
-    
