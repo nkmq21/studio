@@ -1,12 +1,14 @@
 
 "use client";
 
-import { ShieldAlert, Users as UsersIconLucide, ArrowRight, Bike as BikeIcon, ListChecks, CalendarClock, LayoutDashboard, Eye, TrendingUp, Repeat, ShoppingBag } from 'lucide-react';
+import { ShieldAlert, Users as UsersIconLucide, UserPlus, ArrowRight, Bike as BikeIcon, ListChecks, CalendarClock, Eye, TrendingUp, Repeat, ShoppingBag } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { MOCK_USERS, MOCK_BIKES, MOCK_RENTALS } from '@/lib/mock-data';
 import { useMemo } from 'react';
+import { startOfMonth, endOfMonth, startOfQuarter, endOfQuarter, startOfYear, endOfYear, isWithinInterval } from 'date-fns';
+import type { User } from '@/lib/types';
 
 interface MetricCardProps {
   title: string;
@@ -39,7 +41,22 @@ const MetricCard: React.FC<MetricCardProps> = ({ title, value, icon: Icon, descr
 
 
 export default function AdminOverviewPage() {
-  const totalUsers = useMemo(() => MOCK_USERS.length, []);
+  const now = new Date();
+  const periodRefs = useMemo(() => ({
+    month: { start: startOfMonth(now), end: endOfMonth(now) },
+    quarter: { start: startOfQuarter(now), end: endOfQuarter(now) },
+    year: { start: startOfYear(now), end: endOfYear(now) },
+  }), [now]); // Recalculate if 'now' changes significantly, though for client-side it's fine
+
+  const userStats = useMemo(() => {
+    const allUsers = MOCK_USERS.map(u => ({...u, createdAt: new Date(u.createdAt)})); // Ensure createdAt is Date object
+    const total = allUsers.length;
+    const thisMonth = allUsers.filter(u => isWithinInterval(u.createdAt, periodRefs.month)).length;
+    const thisQuarter = allUsers.filter(u => isWithinInterval(u.createdAt, periodRefs.quarter)).length;
+    const thisYear = allUsers.filter(u => isWithinInterval(u.createdAt, periodRefs.year)).length;
+    return { total, thisMonth, thisQuarter, thisYear };
+  }, [periodRefs.month, periodRefs.quarter, periodRefs.year]);
+  
   const totalBikes = useMemo(() => MOCK_BIKES.length, []);
   
   const rentalStats = useMemo(() => {
@@ -63,14 +80,17 @@ export default function AdminOverviewPage() {
   }, []);
 
   const metricCards: MetricCardProps[] = [
-    { title: "Total Users", value: totalUsers, icon: UsersIconLucide, description: "Registered users" },
+    { title: "Total Registered Users", value: userStats.total, icon: UsersIconLucide, description: "All-time user count", link: "/admin/users", linkText: "Manage Users"},
+    { title: "New Users (This Month)", value: userStats.thisMonth, icon: UserPlus, description: "Signed up this month" },
+    { title: "New Users (This Quarter)", value: userStats.thisQuarter, icon: UserPlus, description: "Signed up this quarter" },
+    { title: "New Users (This Year)", value: userStats.thisYear, icon: UserPlus, description: "Signed up this year" },
     { title: "Total Bikes", value: totalBikes, icon: BikeIcon, description: "Bikes in fleet", link: "/admin/fleet", linkText: "Manage Fleet" },
     { title: "Active Rentals", value: rentalStats.active, icon: ListChecks, description: "Currently rented out", link: "/admin/rentals/active", linkText: "View Active" },
     { title: "Upcoming Rentals", value: rentalStats.upcoming, icon: CalendarClock, description: "Future bookings", link: "/admin/rentals/upcoming", linkText: "View Upcoming" },
     { title: "Most Popular Bike", value: rentalStats.popularBikeName, icon: TrendingUp, description: "Based on rental count" },
     { title: "Completed Rentals", value: rentalStats.completed, icon: Repeat, description: "Total past rentals" },
+    { title: "Total Bookings", value: MOCK_RENTALS.length, icon: ShoppingBag, description: "All-time rental bookings" },
     { title: "Website Visits", value: "1,234", icon: Eye, description: "This month (placeholder)" },
-     { title: "Total Bookings", value: MOCK_RENTALS.length, icon: ShoppingBag, description: "All-time rental bookings" },
   ];
 
   const navigationCardItems = [
@@ -117,7 +137,6 @@ export default function AdminOverviewPage() {
         <p className="text-muted-foreground text-lg">Welcome to the VroomVroom.vn admin panel. Get an overview of your operations and navigate to management sections.</p>
       </div>
 
-      {/* Metrics Section */}
       <div className="mb-8">
         <h2 className="text-2xl font-semibold mb-4 text-foreground/90">Key Metrics</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -135,10 +154,9 @@ export default function AdminOverviewPage() {
         </div>
       </div>
       
-      {/* Navigation Section */}
       <div>
         <h2 className="text-2xl font-semibold mb-4 text-foreground/90">Management Sections</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6"> {/* Adjusted to lg:grid-cols-2 for better fit with 4 items */}
           {navigationCardItems.map((item) => {
             const IconComponent = item.icon;
             return (
@@ -158,7 +176,7 @@ export default function AdminOverviewPage() {
                     <Button asChild variant="outline" className="w-full">
                       <Link href={item.href} className="truncate">
                         {item.linkText}
-                        <ArrowRight className="h-4 w-4" />
+                        <ArrowRight className="h-4 w-4 ml-2" /> {/* Added ml-2 for spacing */}
                       </Link>
                     </Button>
                   </div>

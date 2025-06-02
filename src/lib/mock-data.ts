@@ -1,46 +1,51 @@
 
 import type { Bike, User, Rental } from './types';
-import { addDays, subDays } from 'date-fns';
+import { addDays, subDays, subMonths, subYears, startOfMonth, startOfQuarter, startOfYear } from 'date-fns';
+
+const now = new Date();
 
 export const MOCK_USERS: User[] = [
   {
     id: 'user1',
-    email: 'renter@motorent.com',
+    email: 'renter@motorent.com', // Changed from vroomvroom.vn for staff access test
     name: 'Alice Wonderland',
     role: 'renter',
     avatarUrl: 'https://placehold.co/100x100.png',
-    lastLogin: subDays(new Date(), 2),
+    lastLogin: subDays(now, 2),
     feedbackCount: 3,
     dateOfBirth: '1990-05-15',
     address: '123 Main St, Wonderland',
     credentialIdNumber: 'CW1234567',
-    credentialIdImageUrl: undefined, // Or a placeholder data URI if you have one
+    credentialIdImageUrl: undefined,
+    createdAt: startOfMonth(now), // This month
   },
   {
     id: 'user2',
-    email: 'admin@motorent.com',
+    email: 'admin@motorent.com', // Changed from vroomvroom.vn
     name: 'Bob The Builder',
     role: 'admin',
     avatarUrl: 'https://placehold.co/100x100.png',
-    lastLogin: subDays(new Date(), 1),
+    lastLogin: subDays(now, 1),
     feedbackCount: 0,
     dateOfBirth: '1985-10-20',
     address: '456 Tool Ave, Build City',
     credentialIdNumber: undefined,
     credentialIdImageUrl: undefined,
+    createdAt: subMonths(startOfQuarter(now), 1), // Previous quarter
   },
   {
     id: 'user3',
-    email: 'staff@motorent.com',
+    email: 'staff@motorent.com', // This is the one for testing staff access
     name: 'Charlie Brown',
     role: 'staff',
     avatarUrl: 'https://placehold.co/100x100.png',
-    lastLogin: new Date(),
+    lastLogin: now,
     feedbackCount: 1,
     dateOfBirth: '1995-02-10',
     address: '789 Comic Strip, Peanuts Town',
     credentialIdNumber: undefined,
     credentialIdImageUrl: undefined,
+    createdAt: subMonths(now, 2), // This quarter (if current month > 2 months from quarter start)
   },
   {
     id: 'user4',
@@ -48,12 +53,27 @@ export const MOCK_USERS: User[] = [
     name: 'Diana Prince',
     role: 'renter',
     avatarUrl: 'https://placehold.co/100x100.png',
-    lastLogin: subDays(new Date(), 5),
+    lastLogin: subDays(now, 5),
     feedbackCount: 0,
     dateOfBirth: '1980-03-22',
     address: '1 Justice Way, Themyscira',
     credentialIdNumber: 'AMZ987654',
     credentialIdImageUrl: undefined,
+    createdAt: subYears(startOfYear(now),1), // Last year
+  },
+  {
+    id: 'user5',
+    email: 'early.bird@example.com',
+    name: 'Early Bird',
+    role: 'renter',
+    avatarUrl: 'https://placehold.co/100x100.png',
+    lastLogin: subDays(now, 10),
+    feedbackCount: 2,
+    dateOfBirth: '1975-01-01',
+    address: '1 Dawn Rd, Sun City',
+    credentialIdNumber: 'EB0000001',
+    credentialIdImageUrl: undefined,
+    createdAt: subMonths(now, 5), // This year, but potentially not this quarter
   },
 ];
 
@@ -126,7 +146,6 @@ export const MOCK_BIKES: Bike[] = [
     rating: 4.3,
     isAvailable: true,
     amount: 12,
-    // cylinderVolume is intentionally undefined for electric
   },
   {
     id: 'bike6',

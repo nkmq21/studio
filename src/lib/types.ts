@@ -7,12 +7,13 @@ export interface User {
   name: string;
   role: UserRole;
   avatarUrl?: string;
-  lastLogin?: Date; // Added for user management
-  feedbackCount?: number; // Added for user management
-  dateOfBirth?: string; // For profile page
-  address?: string; // For profile page
-  credentialIdNumber?: string; // For credential ID
-  credentialIdImageUrl?: string; // For credential ID image (Data URI)
+  lastLogin?: Date;
+  feedbackCount?: number;
+  dateOfBirth?: string;
+  address?: string;
+  credentialIdNumber?: string;
+  credentialIdImageUrl?: string;
+  createdAt: Date; // Added to track user sign-up date
 }
 
 export interface Bike {
@@ -24,10 +25,10 @@ export interface Bike {
   description: string;
   features: string[];
   location: string;
-  rating?: number; // Optional: 1-5 stars
-  isAvailable?: boolean; // Simplified availability
-  amount: number; // Total stock of this bike model
-  cylinderVolume?: number; // Optional: in cc
+  rating?: number;
+  isAvailable?: boolean;
+  amount: number;
+  cylinderVolume?: number;
 }
 
 export interface Rental {
@@ -37,13 +38,11 @@ export interface Rental {
   startDate: Date;
   endDate: Date;
   totalPrice: number;
-  options: string[]; // e.g., 'helmet', 'insurance'
+  options: string[];
   status: 'Upcoming' | 'Active' | 'Completed' | 'Cancelled';
-  // Denormalized data for easier display
   bikeName: string;
   bikeImageUrl: string;
   orderDate: Date;
-  // quantity?: number; // Future: if a single rental record can be for multiple bikes
 }
 
 export interface OrderDetails {
@@ -53,12 +52,12 @@ export interface OrderDetails {
   options: { id: string, name: string, price: number, selected: boolean }[];
   totalPrice: number;
   numDays: number;
-  quantityRented: number; // Added quantity
+  quantityRented: number;
 }
 
 export interface ChatMessage {
   id: string;
   text: string;
-  sender: 'user' | 'ai' | 'staff' | 'system'; // Added 'system' for mode switch messages
+  sender: 'user' | 'ai' | 'staff' | 'system';
   timestamp: Date;
 }
