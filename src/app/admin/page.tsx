@@ -1,14 +1,22 @@
 
 "use client";
 
-import { ShieldAlert, Users as UsersIconLucide, UserPlus, ArrowRight, Bike as BikeIcon, ListChecks, CalendarClock, Eye, TrendingUp, Repeat, ShoppingBag } from 'lucide-react';
+import { ShieldAlert, Users as UsersIconLucide, UserPlus, ArrowRight, Bike as BikeIcon, ListChecks, CalendarClock, Eye, TrendingUp, Repeat, ShoppingBag, BarChartHorizontal } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { MOCK_USERS, MOCK_BIKES, MOCK_RENTALS } from '@/lib/mock-data';
 import { useMemo } from 'react';
-import { startOfMonth, endOfMonth, startOfQuarter, endOfQuarter, startOfYear, endOfYear, isWithinInterval } from 'date-fns';
+import { startOfMonth, endOfMonth, startOfQuarter, endOfQuarter, startOfYear, endOfYear, isWithinInterval, subMonths, addMonths, format as formatDateFns } from 'date-fns';
 import type { User } from '@/lib/types';
+
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+  type ChartConfig
+} from "@/components/ui/chart";
 
 interface MetricCardProps {
   title: string;
@@ -41,22 +49,7 @@ const MetricCard: React.FC<MetricCardProps> = ({ title, value, icon: Icon, descr
 
 
 export default function AdminOverviewPage() {
-  const now = new Date();
-  const periodRefs = useMemo(() => ({
-    month: { start: startOfMonth(now), end: endOfMonth(now) },
-    quarter: { start: startOfQuarter(now), end: endOfQuarter(now) },
-    year: { start: startOfYear(now), end: endOfYear(now) },
-  }), [now]); // Recalculate if 'now' changes significantly, though for client-side it's fine
-
-  const userStats = useMemo(() => {
-    const allUsers = MOCK_USERS.map(u => ({...u, createdAt: new Date(u.createdAt)})); // Ensure createdAt is Date object
-    const total = allUsers.length;
-    const thisMonth = allUsers.filter(u => isWithinInterval(u.createdAt, periodRefs.month)).length;
-    const thisQuarter = allUsers.filter(u => isWithinInterval(u.createdAt, periodRefs.quarter)).length;
-    const thisYear = allUsers.filter(u => isWithinInterval(u.createdAt, periodRefs.year)).length;
-    return { total, thisMonth, thisQuarter, thisYear };
-  }, [periodRefs.month, periodRefs.quarter, periodRefs.year]);
-  
+  const totalUsers = useMemo(() => MOCK_USERS.length, []);
   const totalBikes = useMemo(() => MOCK_BIKES.length, []);
   
   const rentalStats = useMemo(() => {
@@ -79,11 +72,51 @@ export default function AdminOverviewPage() {
     return { active, upcoming, completed, popularBikeName };
   }, []);
 
+  const monthlyUserSignupsChartData = useMemo(() => {
+    const now = new Date();
+    // Go back 11 months to get the start of the 12-month period
+    const firstMonthOfPeriod = startOfMonth(subMonths(now, 11)); 
+  
+    const counts: { [key: string]: number } = {};
+  
+    // Initialize counts for the last 12 months
+    for (let i = 0; i < 12; i++) {
+      const monthDate = addMonths(firstMonthOfPeriod, i);
+      const monthKey = formatDateFns(monthDate, 'yyyy-MM');
+      counts[monthKey] = 0;
+    }
+  
+    MOCK_USERS.forEach(user => {
+      const signupDate = new Date(user.createdAt);
+      // Ensure the user was created within the 12-month window
+      if (signupDate >= firstMonthOfPeriod && signupDate <= endOfMonth(now)) {
+        const monthKey = formatDateFns(signupDate, 'yyyy-MM');
+        if (counts[monthKey] !== undefined) {
+          counts[monthKey]++;
+        }
+      }
+    });
+    
+    const chartData = Object.keys(counts)
+      .sort() // Sort keys to ensure months are in chronological order
+      .map(monthKey => ({
+        month: formatDateFns(new Date(monthKey + '-01T00:00:00'), 'MMM yy'), // Add time to avoid timezone issues with just yyyy-MM
+        newUsers: counts[monthKey],
+      }));
+      
+    return chartData;
+  }, []);
+
+  const userChartConfig = {
+    newUsers: {
+      label: "New Users",
+      color: "hsl(var(--chart-1))",
+    },
+  } satisfies ChartConfig;
+
+
   const metricCards: MetricCardProps[] = [
-    { title: "Total Registered Users", value: userStats.total, icon: UsersIconLucide, description: "All-time user count", link: "/admin/users", linkText: "Manage Users"},
-    { title: "New Users (This Month)", value: userStats.thisMonth, icon: UserPlus, description: "Signed up this month" },
-    { title: "New Users (This Quarter)", value: userStats.thisQuarter, icon: UserPlus, description: "Signed up this quarter" },
-    { title: "New Users (This Year)", value: userStats.thisYear, icon: UserPlus, description: "Signed up this year" },
+    { title: "Total Registered Users", value: totalUsers, icon: UsersIconLucide, description: "All-time user count", link: "/admin/users", linkText: "Manage Users"},
     { title: "Total Bikes", value: totalBikes, icon: BikeIcon, description: "Bikes in fleet", link: "/admin/fleet", linkText: "Manage Fleet" },
     { title: "Active Rentals", value: rentalStats.active, icon: ListChecks, description: "Currently rented out", link: "/admin/rentals/active", linkText: "View Active" },
     { title: "Upcoming Rentals", value: rentalStats.upcoming, icon: CalendarClock, description: "Future bookings", link: "/admin/rentals/upcoming", linkText: "View Upcoming" },
@@ -153,10 +186,50 @@ export default function AdminOverviewPage() {
           ))}
         </div>
       </div>
+
+      <div className="mb-8">
+        <h2 className="text-2xl font-semibold mb-4 text-foreground/90 flex items-center">
+          <BarChartHorizontal className="w-6 h-6 mr-2 text-primary"/> User Registration Trends
+        </h2>
+        <Card className="shadow-md hover:shadow-lg transition-shadow">
+          <CardHeader>
+            <CardTitle className="text-lg">New Users Over Last 12 Months</CardTitle>
+            <CardDescription>Monthly count of new user registrations.</CardDescription>
+          </CardHeader>
+          <CardContent className="h-[350px] p-2 md:p-4">
+            <ChartContainer config={userChartConfig} className="w-full h-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={monthlyUserSignupsChartData} margin={{ top: 5, right: 10, left: -10, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                  <XAxis 
+                    dataKey="month" 
+                    tickLine={false} 
+                    axisLine={false} 
+                    tickMargin={8}
+                    fontSize={12}
+                  />
+                  <YAxis 
+                    tickLine={false} 
+                    axisLine={false} 
+                    tickMargin={8}
+                    fontSize={12}
+                    allowDecimals={false} 
+                  />
+                  <Tooltip
+                    cursor={{ fill: 'hsl(var(--muted))' }}
+                    content={<ChartTooltipContent indicator="dot" />}
+                  />
+                  <Bar dataKey="newUsers" fill="var(--color-newUsers)" radius={4} />
+                </BarChart>
+              </ResponsiveContainer>
+            </ChartContainer>
+          </CardContent>
+        </Card>
+      </div>
       
       <div>
         <h2 className="text-2xl font-semibold mb-4 text-foreground/90">Management Sections</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6"> {/* Adjusted to lg:grid-cols-2 for better fit with 4 items */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
           {navigationCardItems.map((item) => {
             const IconComponent = item.icon;
             return (
@@ -176,7 +249,7 @@ export default function AdminOverviewPage() {
                     <Button asChild variant="outline" className="w-full">
                       <Link href={item.href} className="truncate">
                         {item.linkText}
-                        <ArrowRight className="h-4 w-4 ml-2" /> {/* Added ml-2 for spacing */}
+                        <ArrowRight className="h-4 w-4 ml-2" />
                       </Link>
                     </Button>
                   </div>
@@ -189,3 +262,6 @@ export default function AdminOverviewPage() {
     </div>
   );
 }
+
+
+    
