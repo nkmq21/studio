@@ -15,21 +15,23 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useToast } from '@/hooks/use-toast';
-import type { DateRange } from 'react-day-picker';
-import { addDays, differenceInDays, format } from 'date-fns';
-import { Tag, Star, DollarSign, MapPinIcon, Settings, CalendarDays, ShoppingCart, AlertCircle, CheckCircle, PackageIcon, UserCheck2 } from 'lucide-react';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { addDays, differenceInDays, format, isValid, startOfDay } from 'date-fns';
+import { Tag, Star, DollarSign, MapPinIcon, Settings, CalendarDays, ShoppingCart, AlertCircle, CheckCircle, PackageIcon, UserCheck2, CalendarIcon } from 'lucide-react';
 import { useAuth } from '@/contexts/auth-context';
 
 export default function BikeDetailsPage() {
   const params = useParams();
   const router = useRouter();
   const { toast } = useToast();
-  const { user, isAuthenticated } = useAuth(); // Get user from auth context
+  const { user, isAuthenticated } = useAuth();
   const [bike, setBike] = useState<Bike | null>(null);
-  const [dateRange, setDateRange] = useState<DateRange | undefined>({
-    from: new Date(),
-    to: addDays(new Date(), 3),
-  });
+
+  const [startDate, setStartDate] = useState<Date | undefined>(undefined);
+  const [endDate, setEndDate] = useState<Date | undefined>(undefined);
+  const [isStartDatePickerOpen, setIsStartDatePickerOpen] = useState(false);
+  const [isEndDatePickerOpen, setIsEndDatePickerOpen] = useState(false);
+
   const [selectedOptions, setSelectedOptions] = useState<typeof RENTAL_OPTIONS>(
     RENTAL_OPTIONS.map(opt => ({ ...opt, selected: false }))
   );
@@ -46,22 +48,42 @@ export default function BikeDetailsPage() {
     }
   }, [params.id]);
 
+  // Initialize dates on the client-side
+  useEffect(() => {
+    const today = startOfDay(new Date());
+    setStartDate(today);
+    setEndDate(addDays(today, 3));
+  }, []);
+
+  // Effect to ensure endDate is not before startDate if startDate changes
+   useEffect(() => {
+    if (startDate && endDate && isValid(startDate) && isValid(endDate) && startOfDay(endDate) < startOfDay(startDate)) {
+      setEndDate(undefined); 
+      toast({
+        title: "End Date Adjusted",
+        description: "End date cannot be before the start date. Please re-select.",
+        variant: "destructive",
+      });
+    }
+  }, [startDate, endDate, toast]);
+
+
   // Calculate quantity available for dates
   useEffect(() => {
-    if (!bike || !dateRange?.from || !dateRange?.to) {
+    if (!bike || !startDate || !endDate || !isValid(startDate) || !isValid(endDate)) {
       setIsAvailableForDates(null);
       setQuantityAvailableForDates(0);
       return;
     }
 
-    if (!bike.isAvailable) { // General bike model availability
+    if (!bike.isAvailable) {
       setIsAvailableForDates(false);
       setQuantityAvailableForDates(0);
       return;
     }
 
-    const selectedStartTime = dateRange.from.getTime();
-    const selectedEndTime = dateRange.to.getTime();
+    const selectedStartTime = startDate.getTime();
+    const selectedEndTime = endDate.getTime();
     let rentedCountDuringPeriod = 0;
 
     MOCK_RENTALS.forEach(rental => {
@@ -78,7 +100,7 @@ export default function BikeDetailsPage() {
     setQuantityAvailableForDates(Math.max(0, calculatedQuantityAvailable));
     setIsAvailableForDates(calculatedQuantityAvailable > 0);
 
-  }, [bike, dateRange]);
+  }, [bike, startDate, endDate]);
 
    useEffect(() => {
     if (quantityAvailableForDates === 0) {
@@ -92,7 +114,7 @@ export default function BikeDetailsPage() {
 
 
   useEffect(() => {
-    if (bike && dateRange?.from && dateRange?.to && desiredQuantity > 0 && numberOfDays > 0) {
+    if (bike && startDate && endDate && isValid(startDate) && isValid(endDate) && desiredQuantity > 0 && numberOfDays > 0) {
       const baseBikeCost = bike.pricePerDay * numberOfDays * desiredQuantity;
       const optionsCostPerDay = selectedOptions.reduce((sum, opt) => opt.selected ? sum + opt.price : sum, 0);
       const totalOptionsCost = optionsCostPerDay * numberOfDays;
@@ -100,16 +122,16 @@ export default function BikeDetailsPage() {
     } else {
       setTotalPrice(0);
     }
-  }, [bike, dateRange, selectedOptions, desiredQuantity, numberOfDays]);
+  }, [bike, startDate, endDate, selectedOptions, desiredQuantity, numberOfDays]);
 
   useEffect(() => {
-    if (dateRange?.from && dateRange?.to) {
-        const days = differenceInDays(dateRange.to, dateRange.from) + 1;
+    if (startDate && endDate && isValid(startDate) && isValid(endDate)) {
+        const days = differenceInDays(endDate, startDate) + 1;
         setNumberOfDays(days > 0 ? days : 0);
     } else {
         setNumberOfDays(0);
     }
-  }, [dateRange]);
+  }, [startDate, endDate]);
 
 
   const handleOptionChange = (optionId: string) => {
@@ -138,8 +160,9 @@ export default function BikeDetailsPage() {
   const hasCredentials = !!(user?.credentialIdNumber && user.credentialIdImageUrl);
 
   const canProceedToRent = 
-    bike && // Ensure bike is loaded
+    bike &&
     bike.isAvailable &&
+    startDate && endDate && isValid(startDate) && isValid(endDate) && // Check dates
     numberOfDays > 0 &&
     isAvailableForDates === true &&
     desiredQuantity > 0 &&
@@ -166,7 +189,7 @@ export default function BikeDetailsPage() {
       return;
     }
 
-    if (!canProceedToRent || !bike || !dateRange?.from || !dateRange?.to) { // Redundant check, but good safeguard
+    if (!canProceedToRent || !bike || !startDate || !endDate) {
       toast({
         title: "Rental Not Possible",
         description: "Please select a valid date range, ensure bike availability, and set a valid quantity.",
@@ -177,8 +200,8 @@ export default function BikeDetailsPage() {
 
     const orderDetails: OrderDetails = {
       bike,
-      startDate: dateRange.from,
-      endDate: dateRange.to,
+      startDate: startDate,
+      endDate: endDate,
       options: selectedOptions.filter(opt => opt.selected),
       totalPrice,
       numDays: numberOfDays,
@@ -207,16 +230,16 @@ export default function BikeDetailsPage() {
   if (!isAuthenticated) {
     rentButtonText = "Login to Rent";
     rentButtonIcon = <UserCheck2 className="w-5 h-5 mr-2" />;
-    rentButtonDisabled = false; // Not disabled, action changes
+    rentButtonDisabled = false;
   } else if (!hasCredentials) {
     rentButtonText = "Update Profile to Rent";
     rentButtonIcon = <UserCheck2 className="w-5 h-5 mr-2" />;
-    rentButtonDisabled = false; // Not disabled, action changes
+    rentButtonDisabled = false;
   } else if (!canProceedToRent) {
     rentButtonDisabled = true;
     if (!bike.isAvailable) rentButtonText = 'Bike Model Unavailable';
-    else if (numberOfDays <=0 && dateRange?.from && dateRange?.to) rentButtonText = 'Select Valid Dates';
-    else if (!isAvailableForDates && dateRange?.from && dateRange?.to) rentButtonText = 'Unavailable for Dates';
+    else if (!startDate || !endDate || (numberOfDays <=0 && startDate && endDate)) rentButtonText = 'Select Valid Dates';
+    else if (!isAvailableForDates && startDate && endDate) rentButtonText = 'Unavailable for Dates';
     else if (quantityAvailableForDates > 0 && desiredQuantity <= 0) rentButtonText = 'Select Quantity';
     else if (desiredQuantity > quantityAvailableForDates) rentButtonText = 'Quantity Exceeds Stock';
     else rentButtonText = 'Check Rental Details';
@@ -284,24 +307,83 @@ export default function BikeDetailsPage() {
           </CardHeader>
           <CardContent className="space-y-6">
             <div>
-              <Label htmlFor="date-range" className="text-base font-medium mb-2 block">Rental Dates</Label>
-              <Calendar
-                id="date-range"
-                mode="range"
-                selected={dateRange}
-                onSelect={setDateRange}
-                numberOfMonths={1}
-                className="rounded-md border p-0"
-                disabled={{ before: new Date() }}
-              />
-              {dateRange?.from && dateRange?.to && (
+              <Label className="text-base font-medium mb-2 block">Rental Dates</Label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="startDateBikeDetails" className="text-sm font-medium mb-1.5 block">Start Date</Label>
+                   <Popover open={isStartDatePickerOpen} onOpenChange={setIsStartDatePickerOpen}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        id="startDateBikeDetails"
+                        variant={"outline"}
+                        className="w-full justify-start text-left font-normal"
+                        disabled={startDate === undefined}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {startDate && isValid(startDate) ? format(startDate, "PPP") : <span>Pick a date</span>}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0">
+                      <Calendar
+                        mode="single"
+                        selected={startDate}
+                        onSelect={(date) => {
+                          const newStartDate = date ? startOfDay(date) : undefined;
+                          setStartDate(newStartDate);
+                          if (newStartDate && endDate && isValid(newStartDate) && isValid(endDate) && startOfDay(newStartDate) > startOfDay(endDate)) {
+                             setEndDate(undefined);
+                             toast({
+                                  title: "End Date Cleared",
+                                  description: "End date was before the new start date and has been cleared.",
+                                  variant: "destructive", 
+                              });
+                          }
+                          setIsStartDatePickerOpen(false);
+                        }}
+                        disabled={{ before: startOfDay(new Date()) }}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+                <div>
+                  <Label htmlFor="endDateBikeDetails" className="text-sm font-medium mb-1.5 block">End Date</Label>
+                  <Popover open={isEndDatePickerOpen} onOpenChange={setIsEndDatePickerOpen}>
+                    <PopoverTrigger asChild>
+                       <Button
+                        id="endDateBikeDetails"
+                        variant={"outline"}
+                        className="w-full justify-start text-left font-normal"
+                        disabled={!startDate || endDate === undefined} 
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {endDate && isValid(endDate) ? format(endDate, "PPP") : <span>Pick a date</span>}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0">
+                      <Calendar
+                        mode="single"
+                        selected={endDate}
+                        onSelect={(date) => {
+                          const newEndDate = date ? startOfDay(date) : undefined;
+                          setEndDate(newEndDate);
+                          setIsEndDatePickerOpen(false);
+                        }}
+                        disabled={ (startDate && isValid(startDate)) ? { before: startOfDay(startDate) } : { before: startOfDay(new Date()) }}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+              </div>
+              {startDate && endDate && isValid(startDate) && isValid(endDate) && (
                 <p className="text-sm text-muted-foreground mt-2">
-                  Selected: {format(dateRange.from, "PPP")} - {format(dateRange.to, "PPP")} ({numberOfDays} {numberOfDays === 1 ? 'day' : 'days'})
+                  Selected: {format(startDate, "PPP")} - {format(endDate, "PPP")} ({numberOfDays} {numberOfDays === 1 ? 'day' : 'days'})
                 </p>
               )}
             </div>
             
-            {isAvailableForDates !== null && dateRange?.from && dateRange?.to && bike.isAvailable && (
+            {isAvailableForDates !== null && startDate && endDate && isValid(startDate) && isValid(endDate) && bike.isAvailable && (
               <Alert variant={isAvailableForDates && quantityAvailableForDates > 0 ? "default" : "destructive"} className="mb-0">
                 {isAvailableForDates && quantityAvailableForDates > 0 ? <CheckCircle className="h-4 w-4 text-green-500" /> : <AlertCircle className="h-4 w-4" />}
                 <AlertTitle>
