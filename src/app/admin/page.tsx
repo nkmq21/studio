@@ -1,13 +1,13 @@
 
 "use client";
 
-import { ShieldAlert, Users as UsersIconLucide, UserPlus, ArrowRight, Bike as BikeIcon, ListChecks, CalendarClock, Eye, TrendingUp, Repeat, ShoppingBag, BarChartHorizontal, Activity } from 'lucide-react';
+import { ShieldAlert, Users as UsersIconLucide, UserPlus, ArrowRight, Bike as BikeIcon, ListChecks, CalendarClock, Eye, TrendingUp, Repeat, ShoppingBag, BarChartHorizontal, Activity, MessageSquare } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { MOCK_USERS, MOCK_BIKES, MOCK_RENTALS } from '@/lib/mock-data';
 import { useMemo } from 'react';
-import { startOfMonth, endOfMonth, isWithinInterval, subMonths, addMonths, format as formatDateFns } from 'date-fns';
+import { startOfMonth, endOfMonth, isWithinInterval, subMonths, addMonths, format as formatDateFns, startOfQuarter, endOfQuarter, startOfYear, endOfYear } from 'date-fns';
 import type { User } from '@/lib/types';
 
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer, Line, LineChart } from 'recharts';
@@ -52,6 +52,30 @@ export default function AdminOverviewPage() {
   const totalUsers = useMemo(() => MOCK_USERS.length, []);
   const totalBikes = useMemo(() => MOCK_BIKES.length, []);
   
+  const userStats = useMemo(() => {
+    const now = new Date();
+    const currentMonthStart = startOfMonth(now);
+    const currentMonthEnd = endOfMonth(now);
+    const currentQuarterStart = startOfQuarter(now);
+    const currentQuarterEnd = endOfQuarter(now);
+    const currentYearStart = startOfYear(now);
+    const currentYearEnd = endOfYear(now);
+
+    const newThisMonth = MOCK_USERS.filter(user => 
+      isWithinInterval(new Date(user.createdAt), { start: currentMonthStart, end: currentMonthEnd })
+    ).length;
+
+    const newThisQuarter = MOCK_USERS.filter(user => 
+      isWithinInterval(new Date(user.createdAt), { start: currentQuarterStart, end: currentQuarterEnd })
+    ).length;
+
+    const newThisYear = MOCK_USERS.filter(user =>
+      isWithinInterval(new Date(user.createdAt), { start: currentYearStart, end: currentYearEnd })
+    ).length;
+    
+    return { newThisMonth, newThisQuarter, newThisYear };
+  }, []);
+
   const rentalStats = useMemo(() => {
     const active = MOCK_RENTALS.filter(r => r.status === 'Active').length;
     const upcoming = MOCK_RENTALS.filter(r => r.status === 'Upcoming').length;
@@ -149,13 +173,16 @@ export default function AdminOverviewPage() {
 
   const metricCards: MetricCardProps[] = [
     { title: "Total Registered Users", value: totalUsers, icon: UsersIconLucide, description: "All-time user count", link: "/admin/users", linkText: "Manage Users"},
+    { title: "New Users (This Month)", value: userStats.newThisMonth, icon: UserPlus, description: "Signed up this month" },
+    { title: "New Users (This Quarter)", value: userStats.newThisQuarter, icon: UserPlus, description: "Signed up this quarter" },
+    { title: "New Users (This Year)", value: userStats.newThisYear, icon: UserPlus, description: "Signed up this year" },
     { title: "Total Bikes", value: totalBikes, icon: BikeIcon, description: "Bikes in fleet", link: "/admin/fleet", linkText: "Manage Fleet" },
     { title: "Active Rentals", value: rentalStats.active, icon: ListChecks, description: "Currently rented out", link: "/admin/rentals/active", linkText: "View Active" },
     { title: "Upcoming Rentals", value: rentalStats.upcoming, icon: CalendarClock, description: "Future bookings", link: "/admin/rentals/upcoming", linkText: "View Upcoming" },
     { title: "Most Popular Bike", value: rentalStats.popularBikeName, icon: TrendingUp, description: "Based on rental count" },
-    { title: "Completed Rentals", value: rentalStats.completed, icon: Repeat, description: "Total past rentals" },
-    { title: "Total Bookings", value: MOCK_RENTALS.length, icon: ShoppingBag, description: "All-time rental bookings" },
-    { title: "Website Visits", value: "1,234", icon: Eye, description: "This month (placeholder)" },
+    // { title: "Completed Rentals", value: rentalStats.completed, icon: Repeat, description: "Total past rentals" },
+    // { title: "Total Bookings", value: MOCK_RENTALS.length, icon: ShoppingBag, description: "All-time rental bookings" },
+    // { title: "Website Visits", value: "1,234", icon: Eye, description: "This month (placeholder)" },
   ];
 
   const navigationCardItems = [
@@ -191,6 +218,14 @@ export default function AdminOverviewPage() {
       linkText: "User Management",
       icon: UsersIconLucide,
     },
+    // {
+    //   title: "Support Messages",
+    //   description: "View and respond to customer inquiries.",
+    //   details: "Address customer questions and issues submitted through the support channels.",
+    //   href: "/admin/support-messages",
+    //   linkText: "Support Messages",
+    //   icon: MessageSquare,
+    // },
   ];
 
   return (
