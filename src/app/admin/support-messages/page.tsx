@@ -77,7 +77,7 @@ export default function AdminSupportMessagesPage() {
           {messages.length === 0 ? (
             <p className="text-center text-muted-foreground py-10">No support messages found.</p>
           ) : (
-            <div className="space-y-6">
+            <div className="space-y-6 max-h-[70vh] overflow-y-auto pr-2">
               {messages.map((msg) => (
                 <Card key={msg.id} className="bg-card-foreground/5">
                   <CardHeader className="pb-3">
