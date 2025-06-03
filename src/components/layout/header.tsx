@@ -2,7 +2,7 @@
 "use client";
 
 import Link from 'next/link';
-import { Bike, LogIn, LogOut, UserCircle, UserPlus, LayoutDashboard, MessageSquare, History, ShoppingCart, SettingsIcon } from 'lucide-react';
+import { Bike, LogIn, LogOut, UserCircle, UserPlus, LayoutDashboard, MessageSquare, History, ShoppingCart, SettingsIcon, UserCheck } from 'lucide-react'; // Added UserCheck
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/auth-context';
 import {
@@ -82,10 +82,10 @@ export default function Header({ toggleChatWidget }: HeaderProps) {
                     </Link>
                   </DropdownMenuItem>
                 )}
-                 {user?.role === 'staff' && (
+                 {(user?.role === 'staff' || user?.role === 'admin') && ( // Admins can also see Staff Panel link
                   <DropdownMenuItem asChild>
                     <Link href="/staff" className="flex items-center">
-                      <LayoutDashboard className="mr-2 h-4 w-4" />
+                      <UserCheck className="mr-2 h-4 w-4" /> 
                       Staff Panel
                     </Link>
                   </DropdownMenuItem>
@@ -128,3 +128,4 @@ export default function Header({ toggleChatWidget }: HeaderProps) {
     </header>
   );
 }
+
