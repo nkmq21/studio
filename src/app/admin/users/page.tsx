@@ -6,8 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Users as UsersIcon, Trash2, Edit3 } from 'lucide-react'; // Edit3 can be used if direct edit needed later
+// import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'; // Removed Select
+import { Users as UsersIcon, Trash2, Edit3, MessageSquare } from 'lucide-react'; 
 import { MOCK_USERS } from '@/lib/mock-data';
 import type { User, UserRole } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { formatDistanceToNow } from 'date-fns';
 
-const USER_ROLES: UserRole[] = ['renter', 'staff', 'admin'];
+// const USER_ROLES: UserRole[] = ['renter', 'staff', 'admin']; // Removed USER_ROLES
 
 export default function UserManagementPage() {
   const { toast } = useToast();
@@ -35,19 +35,9 @@ export default function UserManagementPage() {
     setUsers(MOCK_USERS);
   }, []);
 
-  const handleRoleChange = (userId: string, newRole: UserRole) => {
-    // In a real app, call an API to update the user's role
-    setUsers(prevUsers =>
-      prevUsers.map(user =>
-        user.id === userId ? { ...user, role: newRole } : user
-      )
-    );
-    const userName = users.find(u => u.id === userId)?.name || 'User';
-    toast({ title: "User Role Updated", description: `${userName}'s role changed to ${newRole}.` });
-  };
+  // Removed handleRoleChange function
 
   const handleDeleteUserConfirm = (userId: string) => {
-    // In a real app, call an API to delete the user
     const userName = users.find(u => u.id === userId)?.name || 'User';
     setUsers(prevUsers => prevUsers.filter(user => user.id !== userId));
     toast({ title: "User Deleted", description: `${userName} has been removed.` });
@@ -66,7 +56,7 @@ export default function UserManagementPage() {
             <CardTitle className="text-2xl font-semibold flex items-center">
               <UsersIcon className="h-7 w-7 mr-2 text-primary" /> User Account Management
             </CardTitle>
-            <CardDescription>View, manage roles, and remove user accounts.</CardDescription>
+            <CardDescription>View user details, feedback count, and remove user accounts.</CardDescription>
           </CardHeader>
           <CardContent>
             <Table>
@@ -74,9 +64,9 @@ export default function UserManagementPage() {
                 <TableRow>
                   <TableHead className="w-[200px]">Name</TableHead>
                   <TableHead>Email</TableHead>
-                  <TableHead className="w-[150px]">Role</TableHead>
+                  <TableHead>Role</TableHead> {/* Still showing Role for context, but not editable here */}
                   <TableHead>Last Login</TableHead>
-                  <TableHead>Feedback</TableHead>
+                  <TableHead className="w-[150px]">Feedback</TableHead> {/* Changed header */}
                   <TableHead className="text-right w-[120px]">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -93,27 +83,25 @@ export default function UserManagementPage() {
                       <TableCell className="font-medium">{user.name}</TableCell>
                       <TableCell>{user.email}</TableCell>
                       <TableCell>
-                        <Select
-                          value={user.role}
-                          onValueChange={(newRole) => handleRoleChange(user.id, newRole as UserRole)}
+                        <Badge 
+                          variant={user.role === 'admin' ? 'destructive' : user.role === 'staff' ? 'secondary' : 'outline'} 
+                          className="capitalize"
                         >
-                          <SelectTrigger className="h-8 text-xs">
-                            <SelectValue placeholder="Select role" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {USER_ROLES.map(role => (
-                              <SelectItem key={role} value={role} className="capitalize text-xs">
-                                {role}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                          {user.role}
+                        </Badge>
                       </TableCell>
                       <TableCell className="text-xs text-muted-foreground">
                         {user.lastLogin ? `${formatDistanceToNow(user.lastLogin, { addSuffix: true })}` : 'N/A'}
                       </TableCell>
                       <TableCell className="text-xs text-muted-foreground">
-                        {user.feedbackCount !== undefined ? `${user.feedbackCount} item(s)` : 'N/A'}
+                        {user.feedbackCount !== undefined ? (
+                            <div className="flex items-center">
+                                <MessageSquare className="h-3.5 w-3.5 mr-1.5 text-muted-foreground/70"/>
+                                {`${user.feedbackCount} item(s)`}
+                            </div>
+                        ) : (
+                            'N/A'
+                        )}
                       </TableCell>
                       <TableCell className="text-right">
                         <AlertDialogTrigger asChild>
@@ -159,3 +147,4 @@ export default function UserManagementPage() {
     </AlertDialog>
   );
 }
+
