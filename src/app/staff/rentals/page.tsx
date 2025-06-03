@@ -2,17 +2,18 @@
 "use client";
 
 import { useEffect, useState, useMemo } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card'; // Added CardFooter
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useToast } from '@/hooks/use-toast'; // Added
 import { MOCK_RENTALS, MOCK_USERS, MOCK_BIKES } from '@/lib/mock-data';
 import type { Rental, User as AppUser, Bike } from '@/lib/types';
 import { format, isValid, startOfDay, endOfDay, isWithinInterval } from 'date-fns';
 import type { DateRange } from 'react-day-picker';
-import { UserCheck, CalendarIcon, MapPin, FilterX, Bike as BikeIconLucide, Users, Clock, ListChecks, CalendarClock } from 'lucide-react';
+import { UserCheck, CalendarIcon, MapPin, FilterX, Bike as BikeIconLucide, Users, Clock, ListChecks, CalendarClock, CheckCircle } from 'lucide-react'; // Added CheckCircle
 import { Label } from '@/components/ui/label';
 
 interface EnrichedRental extends Rental {
@@ -21,29 +22,34 @@ interface EnrichedRental extends Rental {
   bikeLocation?: string;
 }
 
+interface RentalInfoCardProps {
+  rental: EnrichedRental;
+  onConfirmPickup?: (rentalId: string) => void; // Added prop
+}
+
 export default function StaffRentalManagementPage() {
-  const [allRentals, setAllRentals] = useState<Rental[]>([]);
+  const [allRentalsData, setAllRentalsData] = useState<Rental[]>(MOCK_RENTALS); // Initialize with mock data
   const [allUsers, setAllUsers] = useState<AppUser[]>([]);
   const [allBikes, setAllBikes] = useState<Bike[]>([]);
+  const { toast } = useToast(); // Added
 
   const [filterDateRange, setFilterDateRange] = useState<DateRange | undefined>(undefined);
   const [filterLocation, setFilterLocation] = useState<string>('all');
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
 
   useEffect(() => {
-    // Simulate fetching data
-    setAllRentals(MOCK_RENTALS);
+    // Data is initialized in useState
     setAllUsers(MOCK_USERS);
     setAllBikes(MOCK_BIKES);
   }, []);
 
   const availableLocations = useMemo(() => {
-    const locations = new Set(MOCK_BIKES.map(bike => bike.location));
+    const locations = new Set(allBikes.map(bike => bike.location));
     return ['all', ...Array.from(locations)];
   }, [allBikes]);
 
   const enrichedRentals: EnrichedRental[] = useMemo(() => {
-    return allRentals.map(r => {
+    return allRentalsData.map(r => { // Use allRentalsData
       const renter = allUsers.find(u => u.id === r.userId);
       const bike = allBikes.find(b => b.id === r.bikeId);
       return {
@@ -53,7 +59,7 @@ export default function StaffRentalManagementPage() {
         bikeLocation: bike?.location || 'Unknown Location',
       };
     });
-  }, [allRentals, allUsers, allBikes]);
+  }, [allRentalsData, allUsers, allBikes]); // Depend on allRentalsData
 
   const filteredEnrichedRentals = useMemo(() => {
     return enrichedRentals.filter(rental => {
@@ -65,12 +71,10 @@ export default function StaffRentalManagementPage() {
         const rentalEnd = endOfDay(new Date(rental.endDate));
         const filterStart = startOfDay(filterDateRange.from);
         const filterEnd = endOfDay(filterDateRange.to);
-
-        // Check if rental period overlaps with filter period
         matchesDate = isWithinInterval(rentalStart, { start: filterStart, end: filterEnd }) ||
                       isWithinInterval(rentalEnd, { start: filterStart, end: filterEnd }) ||
                       (rentalStart <= filterStart && rentalEnd >= filterEnd);
-      } else if (filterDateRange?.from) { // Only start date selected, show rentals active on or after this date
+      } else if (filterDateRange?.from) {
         const rentalEnd = endOfDay(new Date(rental.endDate));
         const filterStart = startOfDay(filterDateRange.from);
         matchesDate = rentalEnd >= filterStart;
@@ -83,13 +87,13 @@ export default function StaffRentalManagementPage() {
   const activeRentals = useMemo(() => {
     return filteredEnrichedRentals
       .filter(r => r.status === 'Active')
-      .sort((a, b) => new Date(a.endDate).getTime() - new Date(b.endDate).getTime()); // Sort by nearest return date
+      .sort((a, b) => new Date(a.endDate).getTime() - new Date(b.endDate).getTime());
   }, [filteredEnrichedRentals]);
 
   const upcomingRentals = useMemo(() => {
     return filteredEnrichedRentals
       .filter(r => r.status === 'Upcoming')
-      .sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime()); // Sort by nearest start date
+      .sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime());
   }, [filteredEnrichedRentals]);
 
   const resetFilters = () => {
@@ -97,15 +101,28 @@ export default function StaffRentalManagementPage() {
     setFilterLocation('all');
   };
 
-  const RentalInfoCard = ({ rental }: { rental: EnrichedRental }) => (
-    <Card className="bg-card-foreground/5 shadow-sm hover:shadow-md transition-shadow">
+  const handleConfirmPickup = (rentalId: string) => {
+    setAllRentalsData(prevRentals =>
+      prevRentals.map(r =>
+        r.id === rentalId ? { ...r, status: 'Active' } : r
+      )
+    );
+    const confirmedRental = enrichedRentals.find(r => r.id === rentalId);
+    toast({
+      title: "Pickup Confirmed",
+      description: `${confirmedRental?.bikeName || 'Bike'} pickup by ${confirmedRental?.renterName || 'user'} confirmed. Status set to Active.`,
+    });
+  };
+
+  const RentalInfoCard = ({ rental, onConfirmPickup }: RentalInfoCardProps) => (
+    <Card className="bg-card-foreground/5 shadow-sm hover:shadow-md transition-shadow flex flex-col">
       <CardHeader className="pb-2 pt-3 px-4">
         <CardTitle className="text-md font-semibold text-primary flex items-center">
           <BikeIconLucide className="w-4 h-4 mr-1.5" />{rental.bikeName}
         </CardTitle>
         <CardDescription className="text-xs">Location: {rental.bikeLocation}</CardDescription>
       </CardHeader>
-      <CardContent className="px-4 pb-3 text-xs space-y-0.5">
+      <CardContent className="px-4 pb-3 text-xs space-y-0.5 flex-grow">
         <p className="text-muted-foreground flex items-center"><Users className="w-3 h-3 mr-1"/>Rented by: {rental.renterName}</p>
         <p className="text-muted-foreground flex items-center">
             <Clock className="w-3 h-3 mr-1"/>
@@ -114,7 +131,19 @@ export default function StaffRentalManagementPage() {
         <p className="text-muted-foreground flex items-center"><CalendarIcon className="w-3 h-3 mr-1"/>Period: {format(new Date(rental.startDate), "PP")} - {format(new Date(rental.endDate), "PP")}</p>
         <p className="text-muted-foreground mt-1">ID: {rental.id}</p>
       </CardContent>
-      {/* Add actions like "Mark as Picked Up" or "Mark as Returned" if needed in the future */}
+      {rental.status === 'Upcoming' && onConfirmPickup && (
+        <CardFooter className="p-2 border-t">
+          <Button 
+            onClick={() => onConfirmPickup(rental.id)} 
+            size="sm" 
+            variant="outline"
+            className="w-full text-xs"
+          >
+            <CheckCircle className="w-3.5 h-3.5 mr-1.5" />
+            Confirm Pickup
+          </Button>
+        </CardFooter>
+      )}
     </Card>
   );
 
@@ -125,7 +154,7 @@ export default function StaffRentalManagementPage() {
           <CardTitle className="text-2xl font-semibold flex items-center">
             <ListChecks className="h-7 w-7 mr-2 text-primary" /> Rental Operations
           </CardTitle>
-          <CardDescription>View and manage active and upcoming rentals. Filter by date and location.</CardDescription>
+          <CardDescription>View and manage active and upcoming rentals. Filter by date and location. Confirm pickups for upcoming rentals.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="p-4 border rounded-lg bg-background space-y-4 md:space-y-0 md:flex md:items-end md:space-x-4">
@@ -160,7 +189,6 @@ export default function StaffRentalManagementPage() {
                     selected={filterDateRange}
                     onSelect={(range) => {
                       setFilterDateRange(range);
-                      // setIsDatePickerOpen(false); // Optional: close on select
                     }}
                     numberOfMonths={2}
                   />
@@ -188,7 +216,7 @@ export default function StaffRentalManagementPage() {
             </Button>
           </div>
 
-          <Tabs defaultValue="active" className="w-full">
+          <Tabs defaultValue="upcoming" className="w-full">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="active"><ListChecks className="mr-2 h-4 w-4"/>Active ({activeRentals.length})</TabsTrigger>
               <TabsTrigger value="upcoming"><CalendarClock className="mr-2 h-4 w-4"/>Upcoming ({upcomingRentals.length})</TabsTrigger>
@@ -205,7 +233,7 @@ export default function StaffRentalManagementPage() {
             <TabsContent value="upcoming">
               {upcomingRentals.length > 0 ? (
                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pt-4 max-h-[60vh] overflow-y-auto pr-2">
-                  {upcomingRentals.map(rental => <RentalInfoCard key={rental.id} rental={rental} />)}
+                  {upcomingRentals.map(rental => <RentalInfoCard key={rental.id} rental={rental} onConfirmPickup={handleConfirmPickup} />)}
                 </div>
               ) : (
                 <p className="text-center text-muted-foreground py-8">No upcoming rentals match your filters.</p>
