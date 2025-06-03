@@ -17,7 +17,7 @@ import {
 } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { UserCheck, LayoutDashboard, Menu, ListChecks, Users as UsersIcon, MessagesSquare } from 'lucide-react';
+import { UserCheck, LayoutDashboard, Menu, ListChecks, MessagesSquare } from 'lucide-react'; // Removed UsersIcon
 
 interface StaffLayoutProps {
   children: ReactNode;
@@ -26,7 +26,7 @@ interface StaffLayoutProps {
 const navItems = [
   { href: '/staff', label: 'Overview', icon: LayoutDashboard },
   { href: '/staff/rentals', label: 'Rental Management', icon: ListChecks },
-  { href: '/staff/users', label: 'User Directory', icon: UsersIcon },
+  // { href: '/staff/users', label: 'User Directory', icon: UsersIcon }, // Removed
   { href: '/staff/support-messages', label: 'Support Messages', icon: MessagesSquare },
 ];
 

@@ -1,7 +1,7 @@
 
 "use client";
 
-import { UserCheck, ListChecks, Users, MessagesSquare, ArrowRight, MapPin, CalendarDays } from 'lucide-react';
+import { UserCheck, ListChecks, MessagesSquare, ArrowRight, MapPin, CalendarDays } from 'lucide-react'; // Removed Users
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -65,12 +65,12 @@ export default function StaffDashboardPage() {
       href: "/staff/rentals",
       icon: ListChecks,
     },
-    {
-      title: "User Directory",
-      description: "Look up customer information and rental history.",
-      href: "/staff/users",
-      icon: Users,
-    },
+    // {
+    //   title: "User Directory",
+    //   description: "Look up customer information and rental history.",
+    //   href: "/staff/users",
+    //   icon: Users, // Icon reference removed as Users is not imported
+    // },
     {
       title: "Customer Support",
       description: "Respond to customer inquiries and provide assistance.",
