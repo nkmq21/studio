@@ -4,20 +4,24 @@
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
+// Textarea removed as reply now happens in chat widget
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { MessagesSquare, UserCircle, Mail, Clock, Send, Edit2 } from 'lucide-react';
-import { MOCK_ADMIN_SUPPORT_MESSAGES } from '@/lib/mock-data'; // Assuming staff view the same messages
-import type { AdminSupportMessage, AdminSupportMessageStatus } from '@/lib/types';
+import { MessagesSquare, UserCircle, Mail, Clock, Send, Edit2, MessageCircle } from 'lucide-react'; // Changed Send to MessageCircle for opening chat
+import { MOCK_ADMIN_SUPPORT_MESSAGES } from '@/lib/mock-data'; 
+import type { AdminSupportMessage, AdminSupportMessageStatus, ChatMessage as ChatMessageType } from '@/lib/types'; // Added ChatMessageType
 import { useToast } from '@/hooks/use-toast';
 import { formatDistanceToNow } from 'date-fns';
+import { useChatWidget } from '@/contexts/chat-widget-context'; // Import useChatWidget
 
 export default function StaffSupportMessagesPage() {
   const { toast } = useToast();
   const [messages, setMessages] = useState<AdminSupportMessage[]>([]);
-  const [replyingTo, setReplyingTo] = useState<string | null>(null);
-  const [replyContent, setReplyContent] = useState('');
+  const { openChatWidget, setInitialMessagesForWidget } = useChatWidget(); // Get openChatWidget from context
+
+  // replyingTo and replyContent state are no longer needed here
+  // const [replyingTo, setReplyingTo] = useState<string | null>(null);
+  // const [replyContent, setReplyContent] = useState('');
 
   useEffect(() => {
     const sortedMessages = [...MOCK_ADMIN_SUPPORT_MESSAGES].sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
@@ -33,24 +37,32 @@ export default function StaffSupportMessagesPage() {
     toast({ title: "Status Updated", description: `Message ${messageId} status changed to ${newStatus}.` });
   };
 
-  const handleStartReply = (messageId: string) => {
-    setReplyingTo(messageId);
-    setReplyContent('');
+  const handleStartReplyFlow = (msg: AdminSupportMessage) => {
+    // Prepare initial messages for the chat widget based on the selected support message
+    const initialChatMessages: ChatMessageType[] = [
+      {
+        id: `customer-query-${msg.id}`,
+        text: `Regarding: "${msg.subject}"\n\n${msg.userName} wrote:\n"${msg.messageContent}"`,
+        sender: 'user', // Simulate this as the user's message in the chat context
+        timestamp: msg.timestamp,
+      },
+      {
+        id: `system-staff-replying-${Date.now()}`,
+        text: `You are now replying to ${msg.userName} (${msg.userEmail}).`,
+        sender: 'system',
+        timestamp: new Date(),
+      }
+    ];
+    setInitialMessagesForWidget(initialChatMessages);
+    openChatWidget(); 
+    // Optionally, change status to 'In Progress' if it's 'New'
+    if (msg.status === 'New') {
+      handleStatusChange(msg.id, 'In Progress');
+    }
   };
 
-  const handleSendReply = (messageId: string) => {
-    if (replyContent.trim() === '') {
-      toast({ title: "Reply Empty", description: "Cannot send an empty reply.", variant: "destructive" });
-      return;
-    }
-    // Mock: In a real app, this would send the reply
-    console.log(`Staff replying to message ${messageId}: ${replyContent}`);
-    toast({ title: "Reply Sent (Mock)", description: `Your reply to message ${messageId} has been 'sent'.` });
-    
-    handleStatusChange(messageId, 'Replied');
-    setReplyingTo(null);
-    setReplyContent('');
-  };
+  // handleSendReply is no longer needed here as reply happens in ChatWidget
+  // const handleSendReply = (messageId: string) => { ... }
 
   const getStatusColor = (status: AdminSupportMessageStatus) => {
     switch (status) {
@@ -69,7 +81,7 @@ export default function StaffSupportMessagesPage() {
           <CardTitle className="text-2xl font-semibold flex items-center">
             <MessagesSquare className="h-7 w-7 mr-2 text-primary" /> Customer Support Queue
           </CardTitle>
-          <CardDescription>View and manage incoming customer inquiries.</CardDescription>
+          <CardDescription>View and manage incoming customer inquiries. Click "Reply in Chat" to open the chat window.</CardDescription>
         </CardHeader>
         <CardContent>
           {messages.length === 0 ? (
@@ -112,27 +124,10 @@ export default function StaffSupportMessagesPage() {
                     <p className="text-sm whitespace-pre-wrap">{msg.messageContent}</p>
                   </CardContent>
                   <CardFooter className="pt-3 flex flex-col items-stretch">
-                    {replyingTo === msg.id ? (
-                      <div className="w-full space-y-2">
-                        <Textarea
-                          placeholder={`Replying to ${msg.userName}...`}
-                          value={replyContent}
-                          onChange={(e) => setReplyContent(e.target.value)}
-                          rows={3}
-                          className="text-sm"
-                        />
-                        <div className="flex justify-end space-x-2">
-                           <Button variant="outline" size="sm" onClick={() => setReplyingTo(null)}>Cancel</Button>
-                           <Button size="sm" onClick={() => handleSendReply(msg.id)}>
-                            <Send className="w-3.5 h-3.5 mr-1.5" />Send Reply
-                          </Button>
-                        </div>
-                      </div>
-                    ) : (
-                      <Button variant="outline" size="sm" onClick={() => handleStartReply(msg.id)} className="self-start">
-                        <Edit2 className="w-3.5 h-3.5 mr-1.5" /> Reply
-                      </Button>
-                    )}
+                    {/* Removed inline reply textarea and buttons */}
+                    <Button variant="outline" size="sm" onClick={() => handleStartReplyFlow(msg)} className="self-start">
+                      <MessageCircle className="w-3.5 h-3.5 mr-1.5" /> Reply in Chat
+                    </Button>
                   </CardFooter>
                 </Card>
               ))}
