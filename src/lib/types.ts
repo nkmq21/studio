@@ -61,3 +61,16 @@ export interface ChatMessage {
   sender: 'user' | 'ai' | 'staff' | 'system';
   timestamp: Date;
 }
+
+export type AdminSupportMessageStatus = 'New' | 'In Progress' | 'Replied' | 'Resolved';
+
+export interface AdminSupportMessage {
+  id: string;
+  userId: string;
+  userName: string;
+  userEmail: string;
+  subject: string;
+  messageContent: string;
+  timestamp: Date;
+  status: AdminSupportMessageStatus;
+}

@@ -5,11 +5,9 @@ import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
-// import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'; // Removed Select
-import { Users as UsersIcon, Trash2, Edit3, MessageSquare } from 'lucide-react'; 
+import { Users as UsersIcon, Trash2, MessageSquare } from 'lucide-react'; 
 import { MOCK_USERS } from '@/lib/mock-data';
-import type { User, UserRole } from '@/lib/types';
+import type { User } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import {
   AlertDialog,
@@ -24,8 +22,6 @@ import {
 } from "@/components/ui/alert-dialog";
 import { formatDistanceToNow } from 'date-fns';
 
-// const USER_ROLES: UserRole[] = ['renter', 'staff', 'admin']; // Removed USER_ROLES
-
 export default function UserManagementPage() {
   const { toast } = useToast();
   const [users, setUsers] = useState<User[]>([]);
@@ -34,8 +30,6 @@ export default function UserManagementPage() {
   useEffect(() => {
     setUsers(MOCK_USERS);
   }, []);
-
-  // Removed handleRoleChange function
 
   const handleDeleteUserConfirm = (userId: string) => {
     const userName = users.find(u => u.id === userId)?.name || 'User';
@@ -62,18 +56,17 @@ export default function UserManagementPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[200px]">Name</TableHead>
+                  <TableHead className="w-[250px]">Name</TableHead>
                   <TableHead>Email</TableHead>
-                  <TableHead>Role</TableHead> {/* Still showing Role for context, but not editable here */}
                   <TableHead>Last Login</TableHead>
-                  <TableHead className="w-[150px]">Feedback</TableHead> {/* Changed header */}
-                  <TableHead className="text-right w-[120px]">Actions</TableHead>
+                  <TableHead className="w-[180px]">Feedback</TableHead>
+                  <TableHead className="text-right w-[100px]">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {users.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center h-24">
+                    <TableCell colSpan={5} className="text-center h-24">
                       No users found.
                     </TableCell>
                   </TableRow>
@@ -82,14 +75,6 @@ export default function UserManagementPage() {
                     <TableRow key={user.id}>
                       <TableCell className="font-medium">{user.name}</TableCell>
                       <TableCell>{user.email}</TableCell>
-                      <TableCell>
-                        <Badge 
-                          variant={user.role === 'admin' ? 'destructive' : user.role === 'staff' ? 'secondary' : 'outline'} 
-                          className="capitalize"
-                        >
-                          {user.role}
-                        </Badge>
-                      </TableCell>
                       <TableCell className="text-xs text-muted-foreground">
                         {user.lastLogin ? `${formatDistanceToNow(user.lastLogin, { addSuffix: true })}` : 'N/A'}
                       </TableCell>
@@ -110,11 +95,6 @@ export default function UserManagementPage() {
                             <span className="sr-only">Delete User</span>
                           </Button>
                         </AlertDialogTrigger>
-                        {/* Placeholder for Edit User button if more details are managed */}
-                        {/* <Button variant="outline" size="icon" className="ml-2 h-8 w-8">
-                          <Edit3 className="h-4 w-4" />
-                          <span className="sr-only">Edit User</span>
-                        </Button> */}
                       </TableCell>
                     </TableRow>
                   ))
@@ -147,4 +127,3 @@ export default function UserManagementPage() {
     </AlertDialog>
   );
 }
-

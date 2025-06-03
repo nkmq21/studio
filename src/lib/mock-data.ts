@@ -1,5 +1,5 @@
 
-import type { Bike, User, Rental } from './types';
+import type { Bike, User, Rental, AdminSupportMessage } from './types';
 import { addDays, subDays, subMonths, subYears, startOfMonth, startOfQuarter, startOfYear } from 'date-fns';
 
 const now = new Date();
@@ -226,3 +226,53 @@ export const RENTAL_OPTIONS = [
   { id: 'gps', name: 'GPS Navigation', price: 10, selected: false },
   { id: 'luggage', name: 'Side Luggage Panniers', price: 12, selected: false },
 ];
+
+export const MOCK_ADMIN_SUPPORT_MESSAGES: AdminSupportMessage[] = [
+  {
+    id: 'msg1',
+    userId: 'user1',
+    userName: 'Alice Wonderland',
+    userEmail: 'renter@motorent.com',
+    subject: 'Question about rental duration',
+    messageContent: 'Can I extend my rental for the Urban Sprinter Z250 by two more days? My current rental ID is rental1 (though it is completed in mock data, assume it was active).',
+    timestamp: subDays(new Date(), 1),
+    status: 'New',
+  },
+  {
+    id: 'msg2',
+    userId: 'user4',
+    userName: 'Diana Prince',
+    userEmail: 'new.renter@example.com',
+    subject: 'Issue with bike lock',
+    messageContent: "I'm having trouble with the lock on the Classic Rider V-Twin. It seems jammed. What should I do?",
+    timestamp: subHours(new Date(), 3),
+    status: 'In Progress',
+  },
+  {
+    id: 'msg3',
+    userId: 'user5',
+    userName: 'Early Bird',
+    userEmail: 'early.bird@example.com',
+    subject: 'Feedback on EcoVolt Commuter',
+    messageContent: "Just wanted to say I loved the EcoVolt Commuter! The battery life was excellent. Will definitely rent again.",
+    timestamp: subDays(new Date(), 2),
+    status: 'Resolved',
+  },
+  {
+    id: 'msg4',
+    userId: 'user1',
+    userName: 'Alice Wonderland',
+    userEmail: 'renter@motorent.com',
+    subject: 'Lost helmet query',
+    messageContent: "I think I might have left the helmet I rented at the pickup location. Is there a lost and found?",
+    timestamp: subHours(new Date(), 1),
+    status: 'New',
+  }
+];
+
+// Helper function to get hours (not exported, just for mock data)
+function subHours(date: Date, hours: number): Date {
+  const newDate = new Date(date);
+  newDate.setHours(date.getHours() - hours);
+  return newDate;
+}

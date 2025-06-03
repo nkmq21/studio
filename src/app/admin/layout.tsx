@@ -17,7 +17,7 @@ import {
 } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { ShieldAlert, Bike as BikeIconLucide, ListChecks, CalendarClock, LayoutDashboard, Menu, Users } from 'lucide-react';
+import { ShieldAlert, Bike as BikeIconLucide, ListChecks, CalendarClock, LayoutDashboard, Menu, Users, MessagesSquare } from 'lucide-react';
 
 interface AdminLayoutProps {
   children: ReactNode;
@@ -29,6 +29,7 @@ const navItems = [
   { href: '/admin/rentals/active', label: 'Active Rentals', icon: ListChecks },
   { href: '/admin/rentals/upcoming', label: 'Upcoming Rentals', icon: CalendarClock },
   { href: '/admin/users', label: 'User Management', icon: Users },
+  { href: '/admin/support-messages', label: 'Support Messages', icon: MessagesSquare },
 ];
 
 export default function AdminLayout({ children }: AdminLayoutProps) {
