@@ -1,16 +1,16 @@
 
 "use client";
 
-import { ShieldAlert, Users as UsersIconLucide, UserPlus, ArrowRight, Bike as BikeIcon, ListChecks, CalendarClock, Eye, TrendingUp, Repeat, ShoppingBag, BarChartHorizontal } from 'lucide-react';
+import { ShieldAlert, Users as UsersIconLucide, UserPlus, ArrowRight, Bike as BikeIcon, ListChecks, CalendarClock, Eye, TrendingUp, Repeat, ShoppingBag, BarChartHorizontal, Activity } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { MOCK_USERS, MOCK_BIKES, MOCK_RENTALS } from '@/lib/mock-data';
 import { useMemo } from 'react';
-import { startOfMonth, endOfMonth, startOfQuarter, endOfQuarter, startOfYear, endOfYear, isWithinInterval, subMonths, addMonths, format as formatDateFns } from 'date-fns';
+import { startOfMonth, endOfMonth, isWithinInterval, subMonths, addMonths, format as formatDateFns } from 'date-fns';
 import type { User } from '@/lib/types';
 
-import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer, Line, LineChart } from 'recharts';
 import {
   ChartContainer,
   ChartTooltip,
@@ -74,12 +74,10 @@ export default function AdminOverviewPage() {
 
   const monthlyUserSignupsChartData = useMemo(() => {
     const now = new Date();
-    // Go back 11 months to get the start of the 12-month period
     const firstMonthOfPeriod = startOfMonth(subMonths(now, 11)); 
   
     const counts: { [key: string]: number } = {};
   
-    // Initialize counts for the last 12 months
     for (let i = 0; i < 12; i++) {
       const monthDate = addMonths(firstMonthOfPeriod, i);
       const monthKey = formatDateFns(monthDate, 'yyyy-MM');
@@ -88,7 +86,6 @@ export default function AdminOverviewPage() {
   
     MOCK_USERS.forEach(user => {
       const signupDate = new Date(user.createdAt);
-      // Ensure the user was created within the 12-month window
       if (signupDate >= firstMonthOfPeriod && signupDate <= endOfMonth(now)) {
         const monthKey = formatDateFns(signupDate, 'yyyy-MM');
         if (counts[monthKey] !== undefined) {
@@ -97,20 +94,55 @@ export default function AdminOverviewPage() {
       }
     });
     
-    const chartData = Object.keys(counts)
-      .sort() // Sort keys to ensure months are in chronological order
+    return Object.keys(counts)
+      .sort()
       .map(monthKey => ({
-        month: formatDateFns(new Date(monthKey + '-01T00:00:00'), 'MMM yy'), // Add time to avoid timezone issues with just yyyy-MM
+        month: formatDateFns(new Date(monthKey + '-01T00:00:00'), 'MMM yy'),
         newUsers: counts[monthKey],
       }));
-      
-    return chartData;
   }, []);
 
   const userChartConfig = {
     newUsers: {
       label: "New Users",
       color: "hsl(var(--chart-1))",
+    },
+  } satisfies ChartConfig;
+
+  const monthlyRentalTrendsChartData = useMemo(() => {
+    const now = new Date();
+    const firstMonthOfPeriod = startOfMonth(subMonths(now, 11));
+    const counts: { [key: string]: number } = {};
+
+    for (let i = 0; i < 12; i++) {
+      const monthDate = addMonths(firstMonthOfPeriod, i);
+      const monthKey = formatDateFns(monthDate, 'yyyy-MM');
+      counts[monthKey] = 0;
+    }
+
+    MOCK_RENTALS.forEach(rental => {
+      const rentalStartDate = new Date(rental.startDate);
+      // Check if the rental's start date falls within the 12-month window
+      if (rentalStartDate >= firstMonthOfPeriod && rentalStartDate <= endOfMonth(now)) {
+        const monthKey = formatDateFns(rentalStartDate, 'yyyy-MM');
+        if (counts[monthKey] !== undefined) {
+          counts[monthKey]++;
+        }
+      }
+    });
+
+    return Object.keys(counts)
+      .sort()
+      .map(monthKey => ({
+        month: formatDateFns(new Date(monthKey + '-01T00:00:00'), 'MMM yy'),
+        totalRentals: counts[monthKey],
+      }));
+  }, []);
+
+  const rentalChartConfig = {
+    totalRentals: {
+      label: "Total Rentals",
+      color: "hsl(var(--chart-2))",
     },
   } satisfies ChartConfig;
 
@@ -187,14 +219,13 @@ export default function AdminOverviewPage() {
         </div>
       </div>
 
-      <div className="mb-8">
-        <h2 className="text-2xl font-semibold mb-4 text-foreground/90 flex items-center">
-          <BarChartHorizontal className="w-6 h-6 mr-2 text-primary"/> User Registration Trends
-        </h2>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
         <Card className="shadow-md hover:shadow-lg transition-shadow">
           <CardHeader>
-            <CardTitle className="text-lg">New Users Over Last 12 Months</CardTitle>
-            <CardDescription>Monthly count of new user registrations.</CardDescription>
+            <CardTitle className="text-lg flex items-center">
+                <BarChartHorizontal className="w-5 h-5 mr-2 text-primary"/> User Registration Trends
+            </CardTitle>
+            <CardDescription>Monthly count of new user registrations for the last 12 months.</CardDescription>
           </CardHeader>
           <CardContent className="h-[350px] p-2 md:p-4">
             <ChartContainer config={userChartConfig} className="w-full h-full">
@@ -220,6 +251,43 @@ export default function AdminOverviewPage() {
                     content={<ChartTooltipContent indicator="dot" />}
                   />
                   <Bar dataKey="newUsers" fill="var(--color-newUsers)" radius={4} />
+                </BarChart>
+              </ResponsiveContainer>
+            </ChartContainer>
+          </CardContent>
+        </Card>
+
+        <Card className="shadow-md hover:shadow-lg transition-shadow">
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center">
+                 <Activity className="w-5 h-5 mr-2 text-primary"/> Rental Volume Trends
+            </CardTitle>
+            <CardDescription>Monthly count of total rentals started for the last 12 months.</CardDescription>
+          </CardHeader>
+          <CardContent className="h-[350px] p-2 md:p-4">
+            <ChartContainer config={rentalChartConfig} className="w-full h-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={monthlyRentalTrendsChartData} margin={{ top: 5, right: 10, left: -10, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                  <XAxis 
+                    dataKey="month" 
+                    tickLine={false} 
+                    axisLine={false} 
+                    tickMargin={8}
+                    fontSize={12}
+                  />
+                  <YAxis 
+                    tickLine={false} 
+                    axisLine={false} 
+                    tickMargin={8}
+                    fontSize={12}
+                    allowDecimals={false} 
+                  />
+                  <Tooltip
+                    cursor={{ fill: 'hsl(var(--muted))' }}
+                    content={<ChartTooltipContent indicator="dot" />}
+                  />
+                  <Bar dataKey="totalRentals" fill="var(--color-totalRentals)" radius={4} />
                 </BarChart>
               </ResponsiveContainer>
             </ChartContainer>
@@ -262,6 +330,3 @@ export default function AdminOverviewPage() {
     </div>
   );
 }
-
-
-    
