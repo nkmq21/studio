@@ -9,7 +9,7 @@ export interface User {
   avatarUrl?: string;
   lastLogin?: Date;
   feedbackCount?: number;
-  dateOfBirth?: string;
+  dateOfBirth?: string; // Ensure this can be string for form input
   address?: string;
   credentialIdNumber?: string;
   credentialIdImageUrl?: string;
@@ -64,6 +64,8 @@ export interface ChatMessage {
 
 export type AdminSupportMessageStatus = 'New' | 'In Progress' | 'Replied' | 'Resolved';
 
+// This type is not used in the admin panel anymore, but staff panel might still use it or a similar one.
+// Kept for staff panel reference if needed.
 export interface AdminSupportMessage {
   id: string;
   userId: string;
@@ -74,3 +76,4 @@ export interface AdminSupportMessage {
   timestamp: Date;
   status: AdminSupportMessageStatus;
 }
+

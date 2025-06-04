@@ -7,7 +7,7 @@ const now = new Date();
 export const MOCK_USERS: User[] = [
   {
     id: 'user1',
-    email: 'renter@motorent.com', // Changed from vroomvroom.vn for staff access test
+    email: 'renter@motorent.com',
     name: 'Alice Wonderland',
     role: 'renter',
     avatarUrl: 'https://placehold.co/100x100.png',
@@ -16,12 +16,12 @@ export const MOCK_USERS: User[] = [
     dateOfBirth: '1990-05-15',
     address: '123 Main St, Wonderland',
     credentialIdNumber: 'CW1234567',
-    credentialIdImageUrl: undefined,
-    createdAt: startOfMonth(now), // This month
+    credentialIdImageUrl: 'https://placehold.co/300x200.png" data-ai-hint="id card',
+    createdAt: startOfMonth(now),
   },
   {
     id: 'user2',
-    email: 'admin@motorent.com', // Changed from vroomvroom.vn
+    email: 'admin@motorent.com',
     name: 'Bob The Builder',
     role: 'admin',
     avatarUrl: 'https://placehold.co/100x100.png',
@@ -29,13 +29,13 @@ export const MOCK_USERS: User[] = [
     feedbackCount: 0,
     dateOfBirth: '1985-10-20',
     address: '456 Tool Ave, Build City',
-    credentialIdNumber: undefined,
+    credentialIdNumber: 'BBT789012',
     credentialIdImageUrl: undefined,
-    createdAt: subMonths(startOfQuarter(now), 1), // Previous quarter
+    createdAt: subMonths(startOfQuarter(now), 1),
   },
   {
     id: 'user3',
-    email: 'staff@motorent.com', // This is the one for testing staff access
+    email: 'staff@motorent.com',
     name: 'Charlie Brown',
     role: 'staff',
     avatarUrl: 'https://placehold.co/100x100.png',
@@ -43,9 +43,9 @@ export const MOCK_USERS: User[] = [
     feedbackCount: 1,
     dateOfBirth: '1995-02-10',
     address: '789 Comic Strip, Peanuts Town',
-    credentialIdNumber: undefined,
-    credentialIdImageUrl: undefined,
-    createdAt: subMonths(now, 2), // This quarter (if current month > 2 months from quarter start)
+    credentialIdNumber: 'CBZ345678',
+    credentialIdImageUrl: 'https://placehold.co/300x200.png" data-ai-hint="license driver',
+    createdAt: subMonths(now, 2),
   },
   {
     id: 'user4',
@@ -59,7 +59,7 @@ export const MOCK_USERS: User[] = [
     address: '1 Justice Way, Themyscira',
     credentialIdNumber: 'AMZ987654',
     credentialIdImageUrl: undefined,
-    createdAt: subYears(startOfYear(now),1), // Last year
+    createdAt: subYears(startOfYear(now),1),
   },
   {
     id: 'user5',
@@ -72,8 +72,8 @@ export const MOCK_USERS: User[] = [
     dateOfBirth: '1975-01-01',
     address: '1 Dawn Rd, Sun City',
     credentialIdNumber: 'EB0000001',
-    credentialIdImageUrl: undefined,
-    createdAt: subMonths(now, 5), // This year, but potentially not this quarter
+    credentialIdImageUrl: 'https://placehold.co/300x200.png" data-ai-hint="passport photo',
+    createdAt: subMonths(now, 5),
   },
 ];
 
@@ -217,6 +217,32 @@ export const MOCK_RENTALS: Rental[] = [
     bikeName: MOCK_BIKES.find(b => b.id === 'bike4')!.name,
     bikeImageUrl: MOCK_BIKES.find(b => b.id === 'bike4')!.imageUrl,
     orderDate: addDays(new Date(), -32),
+  },
+   {
+    id: 'rental4',
+    bikeId: 'bike5', // EcoVolt Commuter
+    userId: 'user2', // Admin user
+    startDate: addDays(now, -2), // Active rental
+    endDate: addDays(now, 3),
+    totalPrice: 55 * 5,
+    options: ['helmet', 'gps'],
+    status: 'Active',
+    bikeName: MOCK_BIKES.find(b => b.id === 'bike5')!.name,
+    bikeImageUrl: MOCK_BIKES.find(b => b.id === 'bike5')!.imageUrl,
+    orderDate: addDays(now, -3),
+  },
+  {
+    id: 'rental5',
+    bikeId: 'bike6', // CityHopper 125
+    userId: 'user3', // Staff user
+    startDate: addDays(now, 7), // Upcoming rental
+    endDate: addDays(now, 10),
+    totalPrice: 35 * 3,
+    options: [],
+    status: 'Upcoming',
+    bikeName: MOCK_BIKES.find(b => b.id === 'bike6')!.name,
+    bikeImageUrl: MOCK_BIKES.find(b => b.id === 'bike6')!.imageUrl,
+    orderDate: now,
   },
 ];
 
