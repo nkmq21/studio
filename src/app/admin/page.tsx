@@ -180,52 +180,6 @@ export default function AdminOverviewPage() {
     { title: "Active Rentals", value: rentalStats.active, icon: ListChecks, description: "Currently rented out", link: "/admin/rentals/active", linkText: "View Active" },
     { title: "Upcoming Rentals", value: rentalStats.upcoming, icon: CalendarClock, description: "Future bookings", link: "/admin/rentals/upcoming", linkText: "View Upcoming" },
     { title: "Most Popular Bike", value: rentalStats.popularBikeName, icon: TrendingUp, description: "Based on rental count" },
-    // { title: "Completed Rentals", value: rentalStats.completed, icon: Repeat, description: "Total past rentals" },
-    // { title: "Total Bookings", value: MOCK_RENTALS.length, icon: ShoppingBag, description: "All-time rental bookings" },
-    // { title: "Website Visits", value: "1,234", icon: Eye, description: "This month (placeholder)" },
-  ];
-
-  const navigationCardItems = [
-    {
-      title: "Fleet Management",
-      description: "View, add, edit, or remove bikes from the catalog.",
-      details: "Manage all motorbikes available for rent. Update details, availability, and pricing.",
-      href: "/admin/fleet",
-      linkText: "Fleet Management",
-      icon: BikeIcon,
-    },
-    {
-      title: "Active Rentals",
-      description: "Monitor bikes currently rented out to customers.",
-      details: "See which bikes are on the road, who rented them, and when they are due back.",
-      href: "/admin/rentals/active",
-      linkText: "Active Rentals",
-      icon: ListChecks,
-    },
-    {
-      title: "Upcoming Rentals",
-      description: "Track future rental bookings and prepare accordingly.",
-      details: "Stay ahead by viewing scheduled pickups and ensuring bike availability.",
-      href: "/admin/rentals/upcoming",
-      linkText: "Upcoming Rentals",
-      icon: CalendarClock,
-    },
-    {
-      title: "User Management",
-      description: "Manage user accounts, roles, and permissions.",
-      details: "View all registered users, modify their roles, or remove accounts as needed.",
-      href: "/admin/users",
-      linkText: "User Management",
-      icon: UsersIconLucide,
-    },
-    // {
-    //   title: "Support Messages",
-    //   description: "View and respond to customer inquiries.",
-    //   details: "Address customer questions and issues submitted through the support channels.",
-    //   href: "/admin/support-messages",
-    //   linkText: "Support Messages",
-    //   icon: MessageSquare,
-    // },
   ];
 
   return (
@@ -330,38 +284,10 @@ export default function AdminOverviewPage() {
         </Card>
       </div>
       
-      <div>
-        <h2 className="text-2xl font-semibold mb-4 text-foreground/90">Management Sections</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
-          {navigationCardItems.map((item) => {
-            const IconComponent = item.icon;
-            return (
-              <Card key={item.title} className="hover:shadow-lg transition-shadow flex flex-col">
-                <CardHeader>
-                  <CardTitle className="flex items-center text-xl">
-                    <IconComponent className="w-6 h-6 mr-2 text-primary" />
-                    {item.title}
-                  </CardTitle>
-                  <CardDescription>{item.description}</CardDescription>
-                </CardHeader>
-                <CardContent className="flex flex-col flex-grow p-6 pt-0">
-                  <p className="text-sm text-muted-foreground mb-4 flex-grow">
-                    {item.details}
-                  </p>
-                  <div className="mt-auto">
-                    <Button asChild variant="outline" className="w-full">
-                      <Link href={item.href} className="truncate">
-                        {item.linkText}
-                        <ArrowRight className="h-4 w-4 ml-2" />
-                      </Link>
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
-      </div>
+      {/* Management Sections removed */}
     </div>
   );
 }
+
+
+    
